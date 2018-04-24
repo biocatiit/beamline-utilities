@@ -18,7 +18,7 @@ import subprocess
 proc = subprocess.Popen(['gnuplot', '-p'], shell = True, stdin=subprocess.PIPE,)
 proc.stdin.write("cd '%s'\n" %datPath)
 proc.stdin.write('set xrange [5:]\n')
-proc.stdin.write('set yrange [115000:130000]\n')
+proc.stdin.write('set yrange [105000:120000]\n')
 
 while True:
   datfiles = sorted(glob.glob(fileRootName + '_????.dat'))
@@ -27,9 +27,10 @@ while True:
   for fname in datfiles:
     fileid.append(int(fname[-8:-4]))
     try:
-      q, I, error = np.genfromtxt(fname, skip_header=15, skip_footer=18, unpack=True)
+      q, I, error = np.genfromtxt(fname, skip_header=15, skip_footer=20, unpack=True)
       sumlist.append(I.sum())
-    except:
+    except Exception as e:
+      print e
       sumlist.append(0) 
   with open(fileRootName + '.csv', 'w') as fout:
     for n1, n2 in zip(fileid, sumlist):
@@ -41,7 +42,7 @@ while True:
   proc.stdin.write('set terminal png\n')
   proc.stdin.write("set output '%s_sum.png'\n" %fileRootName)
   proc.stdin.write(gnuplotCmd)
-  proc.stdin.write('set terminal wxt\n')
+  # proc.stdin.write('set terminal wxt\n')
   time.sleep(0.2)
 
 #quit gnuplot

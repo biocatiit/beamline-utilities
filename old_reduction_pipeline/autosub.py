@@ -83,7 +83,7 @@ while True:
   procRg.stdin.write('set terminal png\n')
   procRg.stdin.write("set output '%s_Rg.png'\n" %fileRootName)
   procRg.stdin.write(gnuplotCmd)
-  procRg.stdin.write('set terminal wxt\n')
+  # procRg.stdin.write('set terminal wxt\n')
   time.sleep(1)
   
   gnuplotCmd = "plot '%s' u 1:4:5 w errorbars\n" % (fileRootName +'_Rg.csv')
@@ -92,7 +92,7 @@ while True:
   procI0.stdin.write('set terminal png\n')
   procI0.stdin.write("set output '%s_I0.png'\n" %fileRootName)
   procI0.stdin.write(gnuplotCmd)
-  procI0.stdin.write('set terminal wxt\n')
+  # procI0.stdin.write('set terminal wxt\n')
   time.sleep(0.1)
   print 'Press Ctrl+C to exit!'
   time.sleep(0.2)

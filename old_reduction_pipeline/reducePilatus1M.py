@@ -108,7 +108,7 @@ while True:
         #plt.imshow(np.log10(imArray))
         #plt.draw()
         ###################### plot updated ###########
-        radaverCommand = 'radaver -x %.2f -y %.2f --beamstop-mask=%s --axis-data=%s %s %s' %(beamCenterX, beamCenterY, fit2dmask, qaxis,  headerPath + tifname[:-3] + 'txt', tif)
+        radaverCommand = 'radaver -x %.2f -y %.2f --beamstop-mask=%s --axis-data=%s -o %s %s %s' %(beamCenterX, beamCenterY, fit2dmask, qaxis, tifname[:-3] + 'dat', tif, headerPath + tifname[:-3] + 'txt')
         os.system(radaverCommand)
         #time.sleep(0.05)
         print(radaverCommand)
