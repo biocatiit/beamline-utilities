@@ -3,9 +3,16 @@
 import time
 import sys
 import epics
+import numpy as np
+import scipy.interpolate
+import datetime
+import h5py
+import matplotlib
+matplotlib.use('qt4agg')
+from matplotlib import pyplot as plt
 
 print '\n\n\n'
-print 'Usage: python scanKnifeedge.py 18ID:n:m15 I3 start end step'
+print 'Usage: python scanKnifeedge.py 18ID:n:m15 I3 start end step <exptime>'
 print '\n\n\n'
 motorPV = sys.argv[1]
 pindiode = sys.argv[2]
@@ -13,7 +20,18 @@ start = float(sys.argv[3])
 end = float(sys.argv[4])
 step = float(sys.argv[5])
 
-EXPOSURE_TIME = 0.2 #s
+if len(sys.argv)>6:
+    EXPOSURE_TIME = float(sys.argv[6])
+else:
+    EXPOSURE_TIME = 0.2 #s
+
+if start < end:
+    motor_position = np.arange(start, end+step, step)
+else:
+    motor_position = np.arange(end, start+step, step)
+    motor_position = motor_position[::-1]
+
+
 PRESET_COUNT = EXPOSURE_TIME * int(float('1E8'))
 
 def MoveToX(posX):
@@ -40,47 +58,45 @@ SCALER_PresetI2 = '18ID:scaler2.PR5'
 SCALER_PresetI3 = '18ID:scaler2.PR6'
 
 def initJoerger():
-  status = epics.caput(SCALER_SET_TIME, EXPOSURE_TIME, wait=True)
-  status = epics.caput(SCALER_PresetI0, PRESET_COUNT, wait=True, timeout = 60)
-  status = epics.caput(SCALER_PresetI1, PRESET_COUNT, wait=True, timeout = 60)
-  status = epics.caput(SCALER_PresetI2, PRESET_COUNT, wait=True, timeout = 60)
-  status = epics.caput(SCALER_PresetI3, PRESET_COUNT, wait=True, timeout = 60)
+    status = epics.caput(SCALER_SET_TIME, EXPOSURE_TIME, wait=True)
+    status = epics.caput(SCALER_PresetI0, PRESET_COUNT, wait=True, timeout = 60)
+    status = epics.caput(SCALER_PresetI1, PRESET_COUNT, wait=True, timeout = 60)
+    status = epics.caput(SCALER_PresetI2, PRESET_COUNT, wait=True, timeout = 60)
+    status = epics.caput(SCALER_PresetI3, PRESET_COUNT, wait=True, timeout = 60)
 
- 
+
 def getDark():
-  status = epics.caput(SHUTTER, shutter_close, wait=1)
-  #time.sleep(0.05) # Wait 50 ms for slow shutter to close
- 
-  # start scaler 
-  status = epics.caput(SCALER_START, 1, wait=True, timeout=60)
-  # time.sleep(EXPOSURE_TIME+0.1)   # Wait for scaler to complete
-  # read scaler values
-  I0 = epics.caget(SCALER_I0)
-  I1 = epics.caget(SCALER_I1)
-  I2 = epics.caget(SCALER_I2)
-  I3 = epics.caget(SCALER_I3)
-  return {'I0':I0, 'I1':I1, 'I2':I2, 'I3':I3}
-  
+    status = epics.caput(SHUTTER, shutter_close, wait=1)
+    #time.sleep(0.05) # Wait 50 ms for slow shutter to close
+
+    # start scaler
+    status = epics.caput(SCALER_START, 1, wait=True, timeout=60)
+    # time.sleep(EXPOSURE_TIME+0.1)   # Wait for scaler to complete
+    # read scaler values
+    I0 = epics.caget(SCALER_I0)
+    I1 = epics.caget(SCALER_I1)
+    I2 = epics.caget(SCALER_I2)
+    I3 = epics.caget(SCALER_I3)
+    return {'I0':I0, 'I1':I1, 'I2':I2, 'I3':I3}
+
 def getIonChamber():
-  # start scaler 
-  # status = epics.caput(SCALER_SET_TIME, EXPOSURE_TIME, wait=1)
-  status = epics.caput(SCALER_START, 1, wait=True, timeout=60)
-  #time.sleep(EXPOSURE_TIME+0.1)   # Wait for scaler to complete
-  # read scaler values
-  I0 = epics.caget(SCALER_I0)
-  I1 = epics.caget(SCALER_I1)
-  I2 = epics.caget(SCALER_I2)
-  I3 = epics.caget(SCALER_I3)
-  return {'I0':I0, 'I1':I1, 'I2':I2, 'I3':I3}
-  
-import numpy as np
-import os
-import sys
+    # start scaler
+    # status = epics.caput(SCALER_SET_TIME, EXPOSURE_TIME, wait=1)
+    status = epics.caput(SCALER_START, 1, wait=True, timeout=60)
+    #time.sleep(EXPOSURE_TIME+0.1)   # Wait for scaler to complete
+    # read scaler values
+    I0 = epics.caget(SCALER_I0)
+    I1 = epics.caget(SCALER_I1)
+    I2 = epics.caget(SCALER_I2)
+    I3 = epics.caget(SCALER_I3)
+    return {'I0':I0, 'I1':I1, 'I2':I2, 'I3':I3}
+
 
 # step scan with defined grid points in space
-motor_position = []
-incident_I = []
-knifeedge_I = []
+incident_I = np.empty_like(motor_position)
+knifeedge_I = np.empty_like(motor_position)
+normalized_I = np.empty_like(motor_position)
+diff_I = np.empty(len(motor_position)-1)
 
 
 raw_input('Please check SHUTTER OPEN switch on XiA, is it off? Type y to continue...')
@@ -94,59 +110,171 @@ I_dark = getDark()
 print 'Move motor to the start position %.03f mm...' %start
 MoveToX(start)
 
-# Open shutter 
+# Open shutter
 status = epics.caput(SHUTTER, shutter_open, wait=1)
 time.sleep(0.05) # Wait 50 ms for slow shutter to open fully
-print 'Open shutter' 
+print 'Open shutter'
+time.sleep(3) #Wait for I0 to reach full counts
 
-posX = start
-while (posX <= end):
-  MoveToX(posX)
-  I_values = getIonChamber()
-  #print I_values
-  motor_position.append(posX)
-  incident_I.append(I_values['I0'] - I_dark['I0'])
-  knifeedge_I.append(I_values[pindiode] - I_dark[pindiode])  
-  print '%.03f, %d, %d' %(posX, I_values['I0'] - I_dark['I0'], I_values[pindiode] - I_dark[pindiode])
-  posX += step
+#Set up live plots
+fig, axes = plt.subplots(2, 1)
+ax0 = axes[0]
+ax1 = axes[1]
+ax0.set_xlim(min(motor_position), max(motor_position))
+ax1.set_xlim(min(motor_position), max(motor_position))
+ax0.set_title('Knife-edge step scan I1/I0')
+ax0.set_ylabel('Intensity (arb.)')
+ax1.set_title('Derivative')
+ax1.set_xlabel('Position (mm)')
+ax1.set_ylabel('$\Delta$I (arb.)')
+plt.subplots_adjust(hspace=0.3, top=0.95,right =0.98)
+plt.ion()
+plt.show()
+plt.draw()
+ax0_bkg = fig.canvas.copy_from_bbox(ax0.bbox)
+ax1_bkg = fig.canvas.copy_from_bbox(ax1.bbox)
+
+print ('%9s %9s %9s %9s' %('Position', 'I0', pindiode,
+        pindiode+'/I0'))
+
+for i, posX in enumerate(motor_position):
+    try:
+        MoveToX(posX)
+        I_values = getIonChamber()
+
+        incident_I[i] = I_values['I0'] - I_dark['I0']
+        knifeedge_I[i] = I_values[pindiode] - I_dark[pindiode]
+        normalized_I[i] = knifeedge_I[i]/incident_I[i]
+
+        if i>0:
+            diff_I[i-1] = normalized_I[i]-normalized_I[i-1]
+            if np.isnan(diff_I[i-1]):
+                diff_I[i-1]=0
+
+        print ('%9.03f %9.03f %9.03f %9.03f' %(posX, incident_I[i], knifeedge_I[i],
+            normalized_I[i]))
+
+        #Live plot
+        if i==0:
+            intensity = ax0.plot(motor_position[0], knifeedge_I[0], 'o', animated=True)[0]
+            ax0_lim = ax0.get_ylim()
+
+        elif i==1:
+            diff = ax1.plot(motor_position[0], diff_I[0], 'o-', animated=True)[0]
+            ax1_lim = ax1.get_ylim()
+
+            redraw = False
+            intensity.set_data(motor_position[:i+1], knifeedge_I[:i+1])
+
+            if knifeedge_I[i]<ax0_lim[0] or  knifeedge_I[i]>ax0_lim[1]:
+                ax0.relim()
+                ax0.autoscale_view(scalex=False)
+                ax0_lim = ax0.get_ylim()
+                redraw = True
+
+            fig.canvas.restore_region(ax0_bkg)
+
+            ax0.draw_artist(intensity)
+            fig.canvas.blit(ax0.bbox)
+
+        else:
+            redraw = False
+
+            intensity.set_data(motor_position[:i+1], knifeedge_I[:i+1])
+            diff.set_data(motor_position[:i], diff_I[:i])
+
+            if knifeedge_I[i]<ax0_lim[0] or  knifeedge_I[i]>ax0_lim[1]:
+                ax0.relim()
+                ax0.autoscale_view(scalex=False)
+                ax0_lim = ax0.get_ylim()
+                redraw = True
+            if diff_I[i-1]<ax1_lim[0] or diff_I[i-1]>ax1_lim[1]:
+                ax1.relim()
+                ax1.autoscale_view(scalex=False)
+                ax1_lim = ax1.get_ylim()
+                redraw = True
+            if redraw:
+                fig.canvas.draw()
+
+            fig.canvas.restore_region(ax0_bkg)
+            fig.canvas.restore_region(ax1_bkg)
+
+            ax0.draw_artist(intensity)
+            fig.canvas.blit(ax0.bbox)
+
+            ax1.draw_artist(diff)
+            fig.canvas.blit(ax1.bbox)
+
+        plt.pause(0.00001)
+    except KeyboardInterrupt:
+        incident_I[i:] = 0
+        knifeedge_I[i:] = 0
+        normalized_I[i:]=0
+        diff_I[i:] = 0
+        break
+
+#Turn live plot into a persistant plot
+plt.ioff()
+ax0.clear()
+ax1.clear()
+ax0.plot(motor_position, knifeedge_I, 'o')
+ax0.set_title('Knife-edge step scan I1/I0')
+ax0.set_ylabel('Intensity (arb.)')
+ax1.set_xlabel('Position (mm)')
+ax1.set_ylabel('$\Delta$I (arb.)')
+
 
 # Close shutter
 status = epics.caput(SHUTTER, shutter_close, wait=1)
-print 'Close shutter' 
+print 'Closed shutter'
 
-normalized_I = np.divide(knifeedge_I, incident_I)
-diff_I = np.diff(normalized_I) # take derivative
-diff_I[np.isnan(diff_I)] = 0   # convert all NaNs to 0
 
 x = motor_position[:-1] #number of data points reduced by 1 after taking derivative
 y = np.fabs(diff_I) - np.max(np.fabs(diff_I))/2
 
-import scipy.interpolate
-spline = scipy.interpolate.UnivariateSpline(x, y, s=0)
+
+if x[0]>x[1]:
+    spline = scipy.interpolate.UnivariateSpline(x[::-1], y[::-1], s=0)
+else:
+    spline = scipy.interpolate.UnivariateSpline(x, y, s=0)
+
 try:
-  r1, r2 = spline.roots()
-except:
+    roots = spline.roots()
+    if roots.size == 2:
+        r1 = roots[0]
+        r2 = roots[1]
+    elif roots.size>2:
+        rmax = np.argmax(abs(np.diff(roots)))
+        r1 = roots[rmax]
+        r2 = roots[rmax+1]
+    else:
+        r1 = 0
+        r2 = 0
+except Exception:
   r1 = 0
   r2 = 0
+
 fwhm = np.fabs(r2-r1)
 
-import pylab as pl
 
-pl.figure(1)
-pl.subplot(211)
-pl.plot(motor_position, normalized_I, 'o')
-pl.title('Knife-edge step scan I1/I0')
+ax1.plot(x, abs(diff_I))
+if fwhm>0:
+    if r1<r2:
+        ax1.axvspan(r1, r2, facecolor='g', alpha=0.5)
+    else:
+        ax1.axvspan(r2, r1, facecolor='g', alpha=0.5)
+    ax1.hlines(np.max(abs(diff_I))/2, np.min(x), np.max(x))
+    ax1.set_title('FWHM = %.02f $\mu$m' %(fwhm*1000))
+else:
+    ax1.set_title('FWHM not found')
 
-pl.subplot(212)
-pl.plot(x, y)
-pl.axvspan(r1, r2, facecolor='g', alpha=0.5)
-pl.hlines(np.max(y)/2, np.min(x), np.max(x))
-pl.title('FWHM = %.03f mm' %fwhm)
-pl.show()
+plt.draw()
+plt.show()
 
 logName = 'knife-edge-scan.log'
 
-import datetime
+print 'FWHM = %.02f um' %(fwhm*1000) 
+
 scanName = datetime.datetime.now().strftime("%Y%m%d-%H%M") + '.h5'
 remark = raw_input('Add remark to the current scan (max. 80 characters):\n')
 
@@ -159,15 +287,13 @@ derivative = np.array(zip(x, y))
 h5remark = np.array(remark)
 h5fwhm = np.array(fwhm)
 
-import h5py
-
 with h5py.File(scanName, 'w') as fscan:
-  dset_raw = fscan.create_dataset("raw-scan", data=raw_scan)
-  dset_raw.attrs['column names'] = ['motor position (mm)', 'incident I', 'knife edge I']
-  dset_derivative = fscan.create_dataset("derivative", data=derivative)
-  dset_derivative.attrs['column names'] = ['motor position (mm)', 'derivative of normalized I']
-  dset_remark = fscan.create_dataset("remark", data=h5remark)
-  dset_fwhm = fscan.create_dataset("FWHM", data=h5fwhm)
+    dset_raw = fscan.create_dataset("raw-scan", data=raw_scan)
+    dset_raw.attrs['column names'] = ['motor position (mm)', 'incident I', 'knife edge I']
+    dset_derivative = fscan.create_dataset("derivative", data=derivative)
+    dset_derivative.attrs['column names'] = ['motor position (mm)', 'derivative of normalized I']
+    dset_remark = fscan.create_dataset("remark", data=h5remark)
+    dset_fwhm = fscan.create_dataset("FWHM", data=h5fwhm)
 print 'File %s saved!' %scanName
 
 ###########How to read out the h5 data with python
