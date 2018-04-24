@@ -1,0 +1,8 @@
+# -*- coding: utf-8 -*-
+tifPath = '/mnt/detectors/MarCCD/Kathuria_2014_0326/'
+logPath = '/home/biocat/SAXS_logs/2014run1/2014_0405_Srinivas/'
+workPath = '/home/biocat/SAXS_data/Srinivas_2014_0405/'
+beamCenterX = 1070.84
+beamCenterY = 361.73
+fit2dmaskFile = '04052014fit2d.msk'
+qaxisFile = 'q20140405.dat'
