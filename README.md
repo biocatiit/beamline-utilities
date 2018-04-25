@@ -1,5 +1,6 @@
 # BioCAT beamline utilities
-This project contains miscelanious beamline utilities for the BioCAT beamline (Section 18) at the APS.
+
+This project contains miscelanious beamline utilities for the BioCAT beamline (Sector 18) at the APS.
 
 The most useful utilities are:
 
