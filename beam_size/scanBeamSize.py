@@ -1,7 +1,6 @@
 #!/usr/bin/python
 
 import time
-import sys
 import epics
 import numpy as np
 import scipy.interpolate
@@ -100,7 +99,7 @@ def getIonChamber():
 incident_I = np.empty_like(motor_position)
 knifeedge_I = np.empty_like(motor_position)
 normalized_I = np.empty_like(motor_position)
-diff_I = np.empty(len(motor_position)-1)
+diff_I = np.empty_like(motor_position)
 
 
 raw_input('Please check SHUTTER OPEN switch on XiA, is it off? Type y to continue...')
@@ -151,9 +150,8 @@ for i, posX in enumerate(motor_position):
         normalized_I[i] = knifeedge_I[i]/incident_I[i]
 
         if i>0:
-            diff_I[i-1] = normalized_I[i]-normalized_I[i-1]
-            if np.isnan(diff_I[i-1]):
-                diff_I[i-1]=0
+            diff_I[:i+1] = np.gradient(incidient_I[:i+1], motor_position[:i+1])
+            diff_I[np.isnan(diff_I[:i+1])] = 0
 
         print ('%9.03f %9.03f %9.03f %9.03f' %(posX, incident_I[i], knifeedge_I[i],
             normalized_I[i]))
@@ -164,7 +162,7 @@ for i, posX in enumerate(motor_position):
             ax0_lim = ax0.get_ylim()
 
         elif i==1:
-            diff = ax1.plot(motor_position[0], diff_I[0], 'o-', animated=True)[0]
+            diff = ax1.plot(motor_position[:i+1], diff_I[:i+1], 'o-', animated=True)[0]
             ax1_lim = ax1.get_ylim()
 
             redraw = False
@@ -185,14 +183,14 @@ for i, posX in enumerate(motor_position):
             redraw = False
 
             intensity.set_data(motor_position[:i+1], knifeedge_I[:i+1])
-            diff.set_data(motor_position[:i], diff_I[:i])
+            diff.set_data(motor_position[:i+1], diff_I[:i+1])
 
             if knifeedge_I[i]<ax0_lim[0] or  knifeedge_I[i]>ax0_lim[1]:
                 ax0.relim()
                 ax0.autoscale_view(scalex=False)
                 ax0_lim = ax0.get_ylim()
                 redraw = True
-            if diff_I[i-1]<ax1_lim[0] or diff_I[i-1]>ax1_lim[1]:
+            if diff_I[i]<ax1_lim[0] or diff_I[i]>ax1_lim[1]:
                 ax1.relim()
                 ax1.autoscale_view(scalex=False)
                 ax1_lim = ax1.get_ylim()
@@ -232,15 +230,16 @@ ax1.set_ylabel('$\Delta$I (arb.)')
 status = epics.caput(SHUTTER, shutter_close, wait=1)
 print 'Closed shutter'
 
+if normalized_I[:5].mean() > normalized_I[-5:].mean():
+    diff_I = diff_I*-1
 
-x = motor_position[:-1] #number of data points reduced by 1 after taking derivative
-y = np.fabs(diff_I) - np.max(np.fabs(diff_I))/2
+y = diff_I - np.max(diff_I)/2
 
 
-if x[0]>x[1]:
-    spline = scipy.interpolate.UnivariateSpline(x[::-1], y[::-1], s=0)
+if motor_position[0]>motor_position[1]:
+    spline = scipy.interpolate.UnivariateSpline(motor_position[::-1], y[::-1], s=0)
 else:
-    spline = scipy.interpolate.UnivariateSpline(x, y, s=0)
+    spline = scipy.interpolate.UnivariateSpline(motor_position, y, s=0)
 
 try:
     roots = spline.roots()
@@ -261,13 +260,13 @@ except Exception:
 fwhm = np.fabs(r2-r1)
 
 
-ax1.plot(x, abs(diff_I))
+ax1.plot(motor_position, diff_I)
 if fwhm>0:
     if r1<r2:
         ax1.axvspan(r1, r2, facecolor='g', alpha=0.5)
     else:
         ax1.axvspan(r2, r1, facecolor='g', alpha=0.5)
-    ax1.hlines(np.max(abs(diff_I))/2, np.min(x), np.max(x))
+    ax1.hlines(np.max(diff_I)/2, np.min(motor_position), np.max(motor_position))
     ax1.set_title('FWHM = %.02f $\mu$m' %(fwhm*1000))
 else:
     ax1.set_title('FWHM not found')
@@ -283,11 +282,11 @@ scanName = datetime.datetime.now().strftime("%Y%m%d-%H%M") + '.h5'
 remark = raw_input('Add remark to the current scan (max. 80 characters):\n')
 
 with open(logName, 'a') as flog:
-    flog.write('%s, %s, [%.03f, %.03f] %.03f, %.03f mm, %s\n' %(scanName, motorPV, start, end, step, fwhm, remark))
+    flog.write('%s, %s, [%.03f, %.03f] %.03f, %.05f mm, %s\n' %(scanName, motorPV, start, end, step, fwhm, remark))
 
 
 raw_scan = np.array(zip(motor_position, incident_I, knifeedge_I))
-derivative = np.array(zip(x, y))
+derivative = np.array(zip(motor_position, y))
 h5remark = np.array(remark)
 h5fwhm = np.array(fwhm)
 
