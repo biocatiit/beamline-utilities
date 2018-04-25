@@ -10,20 +10,24 @@ import h5py
 import matplotlib
 matplotlib.use('qt4agg')
 from matplotlib import pyplot as plt
+import argparse
 
-print '\n\n\n'
-print 'Usage: python scanKnifeedge.py 18ID:n:m15 I3 start end step <exptime>'
-print '\n\n\n'
-motorPV = sys.argv[1]
-pindiode = sys.argv[2]
-start = float(sys.argv[3])
-end = float(sys.argv[4])
-step = float(sys.argv[5])
+parser = argparse.ArgumentParser(description='Scanning the beamsize.')
+parser.add_argument('motor', help='The motor EPICS PV.')
+parser.add_argument('ctr', help='The counter name (such as I0) to be used.')
+parser.add_argument('start', type=float, help='The initial motor position (absolute, not relative).')
+parser.add_argument('end', type=float, help='The final motor position (absolute, not relative).')
+parser.add_argument('step', type=float, help='The step size to use in the scan.')
+parser.add_argument('exp', type=float, default=0.2, nargs='?', help='The counting time at each scan point, optional (default: 0.2 s).')
 
-if len(sys.argv)>6:
-    EXPOSURE_TIME = float(sys.argv[6])
-else:
-    EXPOSURE_TIME = 0.2 #s
+args = parser.parse_args()
+
+motorPV = args.motor
+ctr = args.ctr
+start = args.start
+end = args.end
+step = args.step
+exp = args.exp
 
 if start < end:
     motor_position = np.arange(start, end+step, step)
@@ -32,7 +36,7 @@ else:
     motor_position = motor_position[::-1]
 
 
-PRESET_COUNT = EXPOSURE_TIME * int(float('1E8'))
+PRESET_COUNT = exp * int(float('1E8'))
 
 def MoveToX(posX):
   status = epics.caput(motorPV + '.VAL', posX, wait=True, timeout=60)
@@ -58,7 +62,7 @@ SCALER_PresetI2 = '18ID:scaler2.PR5'
 SCALER_PresetI3 = '18ID:scaler2.PR6'
 
 def initJoerger():
-    status = epics.caput(SCALER_SET_TIME, EXPOSURE_TIME, wait=True)
+    status = epics.caput(SCALER_SET_TIME, exp, wait=True)
     status = epics.caput(SCALER_PresetI0, PRESET_COUNT, wait=True, timeout = 60)
     status = epics.caput(SCALER_PresetI1, PRESET_COUNT, wait=True, timeout = 60)
     status = epics.caput(SCALER_PresetI2, PRESET_COUNT, wait=True, timeout = 60)
@@ -71,7 +75,7 @@ def getDark():
 
     # start scaler
     status = epics.caput(SCALER_START, 1, wait=True, timeout=60)
-    # time.sleep(EXPOSURE_TIME+0.1)   # Wait for scaler to complete
+    # time.sleep(exp+0.1)   # Wait for scaler to complete
     # read scaler values
     I0 = epics.caget(SCALER_I0)
     I1 = epics.caget(SCALER_I1)
@@ -81,9 +85,9 @@ def getDark():
 
 def getIonChamber():
     # start scaler
-    # status = epics.caput(SCALER_SET_TIME, EXPOSURE_TIME, wait=1)
+    # status = epics.caput(SCALER_SET_TIME, exp, wait=1)
     status = epics.caput(SCALER_START, 1, wait=True, timeout=60)
-    #time.sleep(EXPOSURE_TIME+0.1)   # Wait for scaler to complete
+    #time.sleep(exp+0.1)   # Wait for scaler to complete
     # read scaler values
     I0 = epics.caget(SCALER_I0)
     I1 = epics.caget(SCALER_I1)
@@ -134,8 +138,8 @@ plt.draw()
 ax0_bkg = fig.canvas.copy_from_bbox(ax0.bbox)
 ax1_bkg = fig.canvas.copy_from_bbox(ax1.bbox)
 
-print ('%9s %9s %9s %9s' %('Position', 'I0', pindiode,
-        pindiode+'/I0'))
+print ('%9s %9s %9s %9s' %('Position', 'I0', ctr,
+        ctr+'/I0'))
 
 for i, posX in enumerate(motor_position):
     try:
@@ -143,7 +147,7 @@ for i, posX in enumerate(motor_position):
         I_values = getIonChamber()
 
         incident_I[i] = I_values['I0'] - I_dark['I0']
-        knifeedge_I[i] = I_values[pindiode] - I_dark[pindiode]
+        knifeedge_I[i] = I_values[ctr] - I_dark[ctr]
         normalized_I[i] = knifeedge_I[i]/incident_I[i]
 
         if i>0:
@@ -273,7 +277,7 @@ plt.show()
 
 logName = 'knife-edge-scan.log'
 
-print 'FWHM = %.02f um' %(fwhm*1000) 
+print 'FWHM = %.02f um' %(fwhm*1000)
 
 scanName = datetime.datetime.now().strftime("%Y%m%d-%H%M") + '.h5'
 remark = raw_input('Add remark to the current scan (max. 80 characters):\n')
