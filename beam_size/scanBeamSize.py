@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import time
+import os.path
 import epics
 import numpy as np
 import scipy.interpolate
@@ -12,12 +13,13 @@ from matplotlib import pyplot as plt
 import argparse
 
 parser = argparse.ArgumentParser(description='Scanning the beamsize.')
-parser.add_argument('motor', help='The motor EPICS PV.')
-parser.add_argument('ctr', help='The counter name (such as I0) to be used.')
+parser.add_argument('motor', help='The motor EPICS PV (e.g. 18ID:n:np7).')
+parser.add_argument('ctr', help='The counter name (e.g. I1) to be used.')
 parser.add_argument('start', type=float, help='The initial motor position (absolute, not relative).')
 parser.add_argument('end', type=float, help='The final motor position (absolute, not relative).')
 parser.add_argument('step', type=float, help='The step size to use in the scan.')
 parser.add_argument('exp', type=float, default=0.2, nargs='?', help='The counting time at each scan point, optional (default: 0.2 s).')
+parser.add_argument('--out', default='~/beam_size_scans', help='The output directory for the scan .h5 file and .log entry, optional (default: ~/beam_size_scans)')
 
 args = parser.parse_args()
 
@@ -27,6 +29,7 @@ start = args.start
 end = args.end
 step = args.step
 exp = args.exp
+outdir = os.path.expanduser(args.out)
 
 if start < end:
     motor_position = np.arange(start, end+step, step)
@@ -150,8 +153,8 @@ for i, posX in enumerate(motor_position):
         normalized_I[i] = knifeedge_I[i]/incident_I[i]
 
         if i>0:
-            diff_I[:i+1] = np.gradient(incidient_I[:i+1], motor_position[:i+1])
-            diff_I[np.isnan(diff_I[:i+1])] = 0
+            diff_I[:i+1] = np.gradient(incident_I[:i+1], motor_position[:i+1])
+            diff_I[:i+1][np.isnan(diff_I[:i+1])] = 0
 
         print ('%9.03f %9.03f %9.03f %9.03f' %(posX, incident_I[i], knifeedge_I[i],
             normalized_I[i]))
@@ -274,11 +277,11 @@ else:
 plt.draw()
 plt.show()
 
-logName = 'knife-edge-scan.log'
+logName = os.path.join(outdir, 'knife-edge-scan.log')
 
 print 'FWHM = %.02f um' %(fwhm*1000)
 
-scanName = datetime.datetime.now().strftime("%Y%m%d-%H%M") + '.h5'
+scanName = os.path.join(outdir, datetime.datetime.now().strftime("%Y%m%d-%H%M") + '.h5')
 remark = raw_input('Add remark to the current scan (max. 80 characters):\n')
 
 with open(logName, 'a') as flog:
