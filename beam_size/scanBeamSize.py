@@ -153,7 +153,7 @@ for i, posX in enumerate(motor_position):
         normalized_I[i] = knifeedge_I[i]/incident_I[i]
 
         if i>0:
-            diff_I[:i+1] = np.gradient(incident_I[:i+1], motor_position[:i+1])
+            diff_I[:i+1] = np.gradient(knifeedge_I[:i+1], motor_position[:i+1])
             diff_I[:i+1][np.isnan(diff_I[:i+1])] = 0
 
         print ('%9.03f %9.03f %9.03f %9.03f' %(posX, incident_I[i], knifeedge_I[i],
