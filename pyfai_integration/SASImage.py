@@ -68,6 +68,8 @@ class RawGuiSettings:
 
                             'UseHeaderForMask': [False, 'bool'],
                             'DetectorFlipped90':[False, 'bool'],
+                            'DetectorFlipLR' : [True, 'bool'],
+                            'DetectorFlipUD' : [False, 'bool'],
 
                             #CORRECTIONS
                             'DoSolidAngleCorrection' : [True, 'bool'],

@@ -76,7 +76,12 @@ def init_integration(cfg_file):
                     'Radial_Average_Method'         : 'pyFAI',
                     }
 
-    return ai, mask, q_range, maxlen, normlist, do_normalization, raw_settings, calibrate_dict
+    fliplr = raw_settings.get('DetectorFlipLR')
+    flipud = raw_settings.get('DetectorFlipUD')
+
+    ai.setup_CSR((xlen, ylen), npt=maxlen, mask=mask, pos0_range=q_range, unit='q_A^-1', split='no')
+
+    return ai, mask, q_range, maxlen, normlist, do_normalization, raw_settings, calibrate_dict, fliplr, flipud
 
 def pyFAIIntegrateCalibrateNormalize(img, parameters, ai, mask, q_range, maxlen,
     normlist, do_normalization, use_gpu=False):
@@ -100,9 +105,9 @@ def pyFAIIntegrateCalibrateNormalize(img, parameters, ai, mask, q_range, maxlen,
         method = 'nosplit_csr_ocl'
     else:
         method = 'nosplit_csr'
+
     q, iq, errorbars = ai.integrate1d(img, maxlen, mask=mask, error_model='poisson',
-        unit='q_A^-1', radial_range=q_range, method = method,
-        normalization_factor=norm_val)
+        unit='q_A^-1', radial_range=q_range, method = method, normalization_factor=norm_val)
 
     i_raw = iq[:-5]        #Last points are usually garbage they're very few pixels
                         #Cutting the last 5 points here.
@@ -112,7 +117,6 @@ def pyFAIIntegrateCalibrateNormalize(img, parameters, ai, mask, q_range, maxlen,
     err_raw_non_nan = np.nan_to_num(errorbars)
 
     parameters['normalizations']['Solid_Angle_Correction'] = 'On'
-
     # if normlist is not None and do_normalization and not pyfai_norm:
     #     for each in normlist:
     #         op, expr = each
@@ -149,10 +153,26 @@ def pyFAIIntegrateCalibrateNormalize(img, parameters, ai, mask, q_range, maxlen,
 
     return q_raw, i_raw, err_raw_non_nan, parameters
 
+
+def pyFAIIntegrateCalibrateNormalize_minimal(img, ai, mask, q_range, maxlen):
+
+    q, iq, errorbars = ai.integrate1d(img, maxlen, mask=mask, error_model='poisson',
+        unit='q_A^-1', radial_range=q_range, method = 'nosplit_csr_ocl', normalization_factor=1.)
+
+    i_raw = iq[:-5]        #Last points are usually garbage they're very few pixels
+                        #Cutting the last 5 points here.
+    q_raw = q[0:len(i_raw)]
+    errorbars = errorbars[0:len(i_raw)]
+
+    err_raw_non_nan = np.nan_to_num(errorbars)
+
+    return q_raw, i_raw, err_raw_non_nan
+
 def doIntegration(output_dir, ai, mask, q_range, maxlen, normlist,
-    do_normalization, calibrate_dict, start_point, end_point, data_file):
+    do_normalization, calibrate_dict, start_point, end_point, fliplr,
+    flipud, data_file):
     print data_file
-    img, img_hdr = loadImage(data_file)
+    img, img_hdr = loadImage(data_file, fliplr, flipud)
     # hdrfile_info = loadHeader(data_file)
     hdrfile_info = {}
 
@@ -163,9 +183,8 @@ def doIntegration(output_dir, ai, mask, q_range, maxlen, normlist,
               'normalizations'  : {},
               'calibration_params': calibrate_dict}
 
-
     q, i, err, parameters = pyFAIIntegrateCalibrateNormalize(img, parameters, ai,
-        mask, q_range, maxlen, normlist, do_normalization)
+        mask, q_range, maxlen, normlist, do_normalization, True)
 
     q = q[start_point:len(q)-end_point]
     i = i[start_point:len(i)-end_point]
@@ -173,6 +192,17 @@ def doIntegration(output_dir, ai, mask, q_range, maxlen, normlist,
 
     output_file =os.path.join(output_dir, os.path.splitext(os.path.split(data_file)[1])[0]+'.dat')
     writeDatFile(q, i, err, parameters, output_file)
+
+def doIntegration_minimal(img, ai, mask, q_range, maxlen, start_point, end_point):
+
+    q, i, err = pyFAIIntegrateCalibrateNormalize_minimal(img, ai,
+        mask, q_range, maxlen)
+
+    q = q[start_point:len(q)-end_point]
+    i = i[start_point:len(i)-end_point]
+    err = err[start_point:len(err)-end_point]
+
+    return (q, i, err)
 
 def calcExpression(expr, img_hdr, file_hdr):
 
@@ -268,10 +298,16 @@ def calcTheta(sd_distance, pixel_size, q_length_pixels):
         theta = .5 * math.atan( (q_length_pixels * pixel_size) / sd_distance )
         return theta
 
-def loadImage(filename):
+def loadImage(filename, fliplr, flipud):
+
     fabio_img = fabio.open(filename)
 
-    img = np.fliplr(fabio_img.data)
+    img = fabio_img.data
+    if fliplr:
+        img[i] = np.fliplr(img[i])
+    if flipud:
+        img[i] = np.flipud(img[i])
+    # img = np.fliplr(fabio_img.data)
     img_hdr = fabio_img.getheader()
 
     if img_hdr is not None:
@@ -279,6 +315,18 @@ def loadImage(filename):
         img_hdr = { key : unicode(img_hdr[key], errors='ignore') if isinstance(img_hdr[key], str) else img_hdr[key] for key in img_hdr}
 
     return img, img_hdr
+
+def loadImage_minimal(filename, fliplr, flipud):
+
+    fabio_img = fabio.open(filename)
+
+    img = fabio_img.data
+    if fliplr:
+        img[i] = np.fliplr(img[i])
+    if flipud:
+        img[i] = np.flipud(img[i])
+
+    return img
 
 def loadHeader(filename):
     ''' returns header information based on the *image* filename
@@ -335,6 +383,22 @@ def writeDatFile(q, i, err, parameters, filename):
         f2.write('\n')
         writeHeader(parameters, f2)
 
+def writeDatFile_minimal(q, i, err, filename):
+    ''' Writes an ASCII file from a measurement object, using the RAD format '''
+
+    with open(filename, 'w') as f2:
+
+        f2.write('### DATA:\n\n')
+        f2.write('         Q               I              Error\n')
+        f2.write('%d\n' % len(q))
+
+        for idx in range(len(q)):
+            line = ('%.8E %.8E %.8E\n') % (q[idx], i[idx], err[idx])
+            f2.write(line)
+
+        f2.write('\n')
+        f2.write('\n')
+
 def writeHeader(d, f2, ignore_list = []):
     f2.write('### HEADER:\n\n')
 
@@ -360,19 +424,21 @@ class MyEncoder(json.JSONEncoder):
         else:
             return super(MyEncoder, self).default(obj)
 
-def getNewFiles(target_dir, old_dir_list):
+def getNewFiles(target_dir, old_dir_list, fprefix):
+    print 'Getting New Files'
     dir_list = os.listdir(target_dir)
 
     dir_list_dict = {}
 
     for each_file in dir_list:
-        full_path = os.path.join(target_dir, each_file)
         if os.path.splitext(each_file)[1] == '.tif':
-            try:
-                dir_list_dict[each_file] = (os.path.getmtime(full_path),
-                    os.path.getsize(full_path))
-            except OSError:
-                pass
+            if fprefix is None or each_file.startswith(fprefix):
+                try:
+                    full_path = os.path.join(target_dir, each_file)
+                    dir_list_dict[each_file] = (os.path.getmtime(full_path),
+                        os.path.getsize(full_path))
+                except OSError:
+                    pass
 
     diff_list = list(set(dir_list_dict.items()) - set(old_dir_list_dict.items()))
     diff_list.sort(key = lambda name: name[0])
@@ -388,13 +454,14 @@ parser = argparse.ArgumentParser(description='Fast aziumuthal averaging of BioCA
 parser.add_argument('cfg', help='The SAXS configuration file (RAW format) for processing the images')
 parser.add_argument('target_dir', metavar='image-dir', help='The target image directory for processing')
 parser.add_argument('-o', '--output-dir', metavar='DIR', dest='output_dir', help='The output directory for integrated .dat files (default: image-dir)')
+parser.add_argument('-f', '--fprefix', metavar='fprefix', dest='fprefix', help='The file prefix for images in the directory to process (optional, defaults to processing all .tif files)')
 
 args = parser.parse_args()
 
 if __name__ == '__main__':
     cfg_file = args.cfg
 
-    ai, mask, q_range, maxlen, normlist, do_normalization, raw_settings, calibrate_dict = init_integration(cfg_file)
+    ai, mask, q_range, maxlen, normlist, do_normalization, raw_settings, calibrate_dict, fliplr, flipud = init_integration(cfg_file)
 
     start_point = raw_settings.get('StartPoint')
     end_point = raw_settings.get('EndPoint')
@@ -407,17 +474,38 @@ if __name__ == '__main__':
     else:
         output_dir = target_dir
 
+    fprefix = args.fprefix
+
     while True:
         try:
 
-            diff_list, old_dir_list_dict = getNewFiles(target_dir, old_dir_list_dict)
+            diff_list, old_dir_list_dict = getNewFiles(target_dir, old_dir_list_dict, fprefix)
 
+            # diff_list = diff_list[0::100] #Every 100th frame
+            print '%i new files to process' %(len(diff_list))
             if not diff_list:
                 time.sleep(0.01)
             else:
+                a = time.time()
                 [doIntegration(output_dir, ai, mask, q_range, maxlen, normlist,
                     do_normalization, calibrate_dict, start_point, end_point,
-                    os.path.join(target_dir, name)) for name, stuff in diff_list]
+                    fliplr, flipud, os.path.join(target_dir, name)) for name, stuff in diff_list]
+
+                # imgs = [loadImage_minimal(os.path.join(target_dir, name), fliplr, flipud) for name, stuff in diff_list]
+
+                # output_data = [doIntegration_minimal(img, ai, mask, q_range, maxlen, start_point, end_point) for img in imgs]
+
+                # [writeDatFile_minimal(output_data[i][0], output_data[i][1], output_data[i][2],
+                #     os.path.join(output_dir, os.path.splitext(os.path.split(diff_list[i][0])[1])[0]+'.dat'))
+                #     for i in xrange(len(diff_list))]
+
+                # for fname in diff_list:
+                #     print fname[0]
+
+                run_time = time.time() -a
+                nimages = len(diff_list)
+                print "Total time: %f s\nNumber of images: %i\nAverage time per image: %f s" %(run_time, nimages, (time.time()-a)/nimages)
+
 
         except KeyboardInterrupt:
             break
