@@ -4,14 +4,14 @@ from normalize_dats import normalize_dats
 # batch list should be a list of lists. Each entry should be as:
 # [source_dir, fprefix, frames, output_dir]
 batch_list = [
-    ['/nas_data/Pilatus1M/2018_Run3/20181130Bilsel/dats_renum/cytc/20181201/a',
-    'a-cytc',
-    '/nas_data/Pilatus1M/2018_Run3/20181130Bilsel/dats_norm_renum/cytc/20181201/a'
-    ],
-    ['/nas_data/Pilatus1M/2018_Run3/20181130Bilsel/dats_renum/cytc/20181201/c',
-    'c-cytc',
-    '/nas_data/Pilatus1M/2018_Run3/20181130Bilsel/dats_norm_renum/cytc/20181201/c'
-    ],
+    # ['/nas_data/Pilatus1M/2018_Run3/20181130Bilsel/dats_renum/cytc/20181201/a',
+    # 'a-cytc',
+    # '/nas_data/Pilatus1M/2018_Run3/20181130Bilsel/dats_norm_renum/cytc/20181201/a'
+    # ],
+    # ['/nas_data/Pilatus1M/2018_Run3/20181130Bilsel/dats_renum/cytc/20181201/c',
+    # 'c-cytc',
+    # '/nas_data/Pilatus1M/2018_Run3/20181130Bilsel/dats_norm_renum/cytc/20181201/c'
+    # ],
     ['/nas_data/Pilatus1M/2018_Run3/20181130Bilsel/dats_renum/cytc/20181201/d',
     'd-blank',
     '/nas_data/Pilatus1M/2018_Run3/20181130Bilsel/dats_norm_renum/cytc/20181201/d'
