@@ -424,7 +424,7 @@ class MyEncoder(json.JSONEncoder):
         else:
             return super(MyEncoder, self).default(obj)
 
-def getNewFiles(target_dir, old_dir_list, fprefix):
+def getNewFiles(target_dir, old_dir_list_dict, fprefix):
     print 'Getting New Files'
     dir_list = os.listdir(target_dir)
 
@@ -450,15 +450,16 @@ def getNewFiles(target_dir, old_dir_list, fprefix):
 ########################################################################
 #Run things
 
-parser = argparse.ArgumentParser(description='Fast aziumuthal averaging of BioCAT Pilatus 1M images in a continuous fashion')
-parser.add_argument('cfg', help='The SAXS configuration file (RAW format) for processing the images')
-parser.add_argument('target_dir', metavar='image-dir', help='The target image directory for processing')
-parser.add_argument('-o', '--output-dir', metavar='DIR', dest='output_dir', help='The output directory for integrated .dat files (default: image-dir)')
-parser.add_argument('-f', '--fprefix', metavar='fprefix', dest='fprefix', help='The file prefix for images in the directory to process (optional, defaults to processing all .tif files)')
-
-args = parser.parse_args()
-
 if __name__ == '__main__':
+
+    parser = argparse.ArgumentParser(description='Fast aziumuthal averaging of BioCAT Pilatus 1M images in a continuous fashion')
+    parser.add_argument('cfg', help='The SAXS configuration file (RAW format) for processing the images')
+    parser.add_argument('target_dir', metavar='image-dir', help='The target image directory for processing')
+    parser.add_argument('-o', '--output-dir', metavar='DIR', dest='output_dir', help='The output directory for integrated .dat files (default: image-dir)')
+    parser.add_argument('-f', '--fprefix', metavar='fprefix', dest='fprefix', help='The file prefix for images in the directory to process (optional, defaults to processing all .tif files)')
+
+    args = parser.parse_args()
+
     cfg_file = args.cfg
 
     ai, mask, q_range, maxlen, normlist, do_normalization, raw_settings, calibrate_dict, fliplr, flipud = init_integration(cfg_file)
