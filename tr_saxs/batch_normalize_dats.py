@@ -8,22 +8,22 @@ batch_list = [
     # 'a-cytc',
     # '/nas_data/Pilatus1M/2018_Run3/20181130Bilsel/dats_norm_renum/cytc/20181201/a'
     # ],
-    # ['/nas_data/Pilatus1M/2018_Run3/20181130Bilsel/dats_renum/cytc/20181201/c',
-    # 'c-cytc',
-    # '/nas_data/Pilatus1M/2018_Run3/20181130Bilsel/dats_norm_renum/cytc/20181201/c'
+    ['/nas_data/Pilatus1M/2018_Run3/20181130Bilsel/dats_renum/cytc/20181201/c',
+    'c-cytc',
+    '/nas_data/Pilatus1M/2018_Run3/20181130Bilsel/dats_norm_renum/cytc/20181201/c'
+    ],
+    # ['/nas_data/Pilatus1M/2018_Run3/20181130Bilsel/dats_renum/cytc/20181201/d',
+    # 'd-blank',
+    # '/nas_data/Pilatus1M/2018_Run3/20181130Bilsel/dats_norm_renum/cytc/20181201/d'
     # ],
-    ['/nas_data/Pilatus1M/2018_Run3/20181130Bilsel/dats_renum/cytc/20181201/d',
-    'd-blank',
-    '/nas_data/Pilatus1M/2018_Run3/20181130Bilsel/dats_norm_renum/cytc/20181201/d'
-    ],
-    ['/nas_data/Pilatus1M/2018_Run3/20181130Bilsel/dats_renum/cytc/20181202/a',
-    'a-cytc',
-    '/nas_data/Pilatus1M/2018_Run3/20181130Bilsel/dats_norm_renum/cytc/20181202/a'
-    ],
-    ['/nas_data/Pilatus1M/2018_Run3/20181130Bilsel/dats_renum/cytc/20181202/b',
-    'b-cytc',
-    '/nas_data/Pilatus1M/2018_Run3/20181130Bilsel/dats_norm_renum/cytc/20181202/b'
-    ],
+    # ['/nas_data/Pilatus1M/2018_Run3/20181130Bilsel/dats_renum/cytc/20181202/a',
+    # 'a-cytc',
+    # '/nas_data/Pilatus1M/2018_Run3/20181130Bilsel/dats_norm_renum/cytc/20181202/a'
+    # ],
+    # ['/nas_data/Pilatus1M/2018_Run3/20181130Bilsel/dats_renum/cytc/20181202/b',
+    # 'b-cytc',
+    # '/nas_data/Pilatus1M/2018_Run3/20181130Bilsel/dats_norm_renum/cytc/20181202/b'
+    # ],
     ['/nas_data/Pilatus1M/2018_Run3/20181130Bilsel/dats_renum/cytc/20181202/c',
     'c-cytc',
     '/nas_data/Pilatus1M/2018_Run3/20181130Bilsel/dats_norm_renum/cytc/20181202/c'

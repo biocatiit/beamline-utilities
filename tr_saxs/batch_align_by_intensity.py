@@ -11,14 +11,14 @@ batch_list = [
     # 'a-cytc',
     # '/nas_data/Pilatus1M/2018_Run3/20181130Bilsel/dats_align/cytc/20181201/a'
     # ],
-    ['/nas_data/Pilatus1M/2018_Run3/20181130Bilsel/dats_norm_renum/cytc/20181201/c',
-    'c-cytc',
-    '/nas_data/Pilatus1M/2018_Run3/20181130Bilsel/dats_align/cytc/20181201/c'
-    ],
-    # ['/nas_data/Pilatus1M/2018_Run3/20181130Bilsel/dats_norm_renum/cytc/20181201/d',
-    # 'd-blank',
-    # '/nas_data/Pilatus1M/2018_Run3/20181130Bilsel/dats_align/cytc/20181201/d'
+    # ['/nas_data/Pilatus1M/2018_Run3/20181130Bilsel/dats_norm_renum/cytc/20181201/c',
+    # 'c-cytc',
+    # '/nas_data/Pilatus1M/2018_Run3/20181130Bilsel/dats_align/cytc/20181201/c'
     # ],
+    ['/nas_data/Pilatus1M/2018_Run3/20181130Bilsel/dats_norm_renum/cytc/20181201/d',
+    'd-blank',
+    '/nas_data/Pilatus1M/2018_Run3/20181130Bilsel/dats_align/cytc/20181201/d'
+    ],
     # ['/nas_data/Pilatus1M/2018_Run3/20181130Bilsel/dats_norm_renum/cytc/20181202/a',
     # 'a-cytc',
     # '/nas_data/Pilatus1M/2018_Run3/20181130Bilsel/dats_align/cytc/20181202/a'
@@ -134,11 +134,14 @@ for source_dir, fprefix, output_dir in batch_list:
 
         new_flist = glob.glob(os.path.join(output_dir, '{}*.dat'.format(fprefix)))
 
+        if 0 not in offsets:
+            offsets.append(0)
+
         max_offset = max(offsets)
         min_offset = min(offsets)
         total_scan_num = len(ref_scan_files)
 
-        for f in flist:
+        for f in new_flist:
             fnum = int(os.path.splitext(os.path.basename(f))[0].split('_')[-1])
 
             if fnum < max_offset + 1:
