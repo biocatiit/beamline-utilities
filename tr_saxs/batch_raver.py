@@ -10,102 +10,102 @@ cfg_file = '/nas_data/Pilatus1M/2018_Run3/20181130Bilsel/processing/mask_minq_0p
 # Note that if fprefix is None, all files in the directory will be processed
 
 batch_list = [
-    ['/nas_data/Pilatus1M/2018_Run3/20181130Bilsel/images/cytc/20181201/',
-    'a-cytc',
-    '/nas_data/Pilatus1M/2018_Run3/20181130Bilsel/dats/cytc/20181201/'
-    ],
-    ['/nas_data/Pilatus1M/2018_Run3/20181130Bilsel/images/cytc/20181201/',
-    'c-cytc',
-    '/nas_data/Pilatus1M/2018_Run3/20181130Bilsel/dats/cytc/20181201/'
-    ],
-    ['/nas_data/Pilatus1M/2018_Run3/20181130Bilsel/images/cytc/20181201/',
-    'd-blank',
-    '/nas_data/Pilatus1M/2018_Run3/20181130Bilsel/dats/cytc/20181201/'
-    ],
-    ['/nas_data/Pilatus1M/2018_Run3/20181130Bilsel/images/cytc/20181202/',
-    'a-cytc',
-    '/nas_data/Pilatus1M/2018_Run3/20181130Bilsel/dats/cytc/20181202/'
-    ],
-    ['/nas_data/Pilatus1M/2018_Run3/20181130Bilsel/images/cytc/20181202/',
-    'b-cytc',
-    '/nas_data/Pilatus1M/2018_Run3/20181130Bilsel/dats/cytc/20181202/'
-    ],
-    ['/nas_data/Pilatus1M/2018_Run3/20181130Bilsel/images/cytc/20181202/',
-    'c-cytc',
-    '/nas_data/Pilatus1M/2018_Run3/20181130Bilsel/dats/cytc/20181202/'
-    ],
-    ['/nas_data/Pilatus1M/2018_Run3/20181130Bilsel/images/cytc/20181202/',
-    'd-cytc',
-    '/nas_data/Pilatus1M/2018_Run3/20181130Bilsel/dats/cytc/20181202/'
-    ],
-    ['/nas_data/Pilatus1M/2018_Run3/20181130Bilsel/images/cytc/20181202/',
-    'e-cytc',
-    '/nas_data/Pilatus1M/2018_Run3/20181130Bilsel/dats/cytc/20181202/'
-    ],
-    ['/nas_data/Pilatus1M/2018_Run3/20181130Bilsel/images/cytc/20181202/',
-    'f-cytc',
-    '/nas_data/Pilatus1M/2018_Run3/20181130Bilsel/dats/cytc/20181202/'
-    ],
-    ['/nas_data/Pilatus1M/2018_Run3/20181130Bilsel/images/cytc/20181202/',
-    'g-blank',
-    '/nas_data/Pilatus1M/2018_Run3/20181130Bilsel/dats/cytc/20181202/'
-    ],
-    ['/nas_data/Pilatus1M/2018_Run3/20181130Bilsel/images/haas/',
-    'a-akblank',
-    '/nas_data/Pilatus1M/2018_Run3/20181130Bilsel/dats/haas'
-    ],
-    ['/nas_data/Pilatus1M/2018_Run3/20181130Bilsel/images/haas/',
-    'b-akprotein',
-    '/nas_data/Pilatus1M/2018_Run3/20181130Bilsel/dats/haas'
-    ],
-    ['/nas_data/Pilatus1M/2018_Run3/20181130Bilsel/images/haas/',
-    'c-akblank',
-    '/nas_data/Pilatus1M/2018_Run3/20181130Bilsel/dats/haas'
-    ],
-    ['/nas_data/Pilatus1M/2018_Run3/20181130Bilsel/images/haas/',
-    'd-akprotein',
-    '/nas_data/Pilatus1M/2018_Run3/20181130Bilsel/dats/haas'
-    ],
-    ['/nas_data/Pilatus1M/2018_Run3/20181130Bilsel/images/haas/',
-    'e-cytcnat',
-    '/nas_data/Pilatus1M/2018_Run3/20181130Bilsel/dats/haas'
-    ],
-    ['/nas_data/Pilatus1M/2018_Run3/20181130Bilsel/images/haas/',
-    'f-cytcnatp',
-    '/nas_data/Pilatus1M/2018_Run3/20181130Bilsel/dats/haas'
-    ],
-    ['/nas_data/Pilatus1M/2018_Run3/20181130Bilsel/images/sosnick/',
-    'a-ubbf06',
-    '/nas_data/Pilatus1M/2018_Run3/20181130Bilsel/dats/sosnick'
-    ],
-    ['/nas_data/Pilatus1M/2018_Run3/20181130Bilsel/images/sosnick/',
-    'b-ub06',
-    '/nas_data/Pilatus1M/2018_Run3/20181130Bilsel/dats/sosnick'
-    ],
-    ['/nas_data/Pilatus1M/2018_Run3/20181130Bilsel/images/sosnick/',
-    'c-ub06',
-    '/nas_data/Pilatus1M/2018_Run3/20181130Bilsel/dats/sosnick'
-    ],
-    ['/nas_data/Pilatus1M/2018_Run3/20181130Bilsel/images/sosnick/',
-    'd-ub04',
-    '/nas_data/Pilatus1M/2018_Run3/20181130Bilsel/dats/sosnick'
-    ],
-    ['/nas_data/Pilatus1M/2018_Run3/20181130Bilsel/images/sosnick/',
-    'e-ub04',
-    '/nas_data/Pilatus1M/2018_Run3/20181130Bilsel/dats/sosnick'
-    ],
-    ['/nas_data/Pilatus1M/2018_Run3/20181130Bilsel/images/sosnick/',
-    'g-ub20',
-    '/nas_data/Pilatus1M/2018_Run3/20181130Bilsel/dats/sosnick'
-    ],
-    ['/nas_data/Pilatus1M/2018_Run3/20181130Bilsel/images/sosnick/',
-    'h-mbp02',
-    '/nas_data/Pilatus1M/2018_Run3/20181130Bilsel/dats/sosnick'
-    ],
-    ['/nas_data/Pilatus1M/2018_Run3/20181130Bilsel/images/sosnick/',
-    'i-mbp02',
-    '/nas_data/Pilatus1M/2018_Run3/20181130Bilsel/dats/sosnick'
-    ],
+    # ['/nas_data/Pilatus1M/2018_Run3/20181130Bilsel/images/cytc/20181201/',
+    # 'a-cytc',
+    # '/nas_data/Pilatus1M/2018_Run3/20181130Bilsel/dats/cytc/20181201/'
+    # ],
+    # ['/nas_data/Pilatus1M/2018_Run3/20181130Bilsel/images/cytc/20181201/',
+    # 'c-cytc',
+    # '/nas_data/Pilatus1M/2018_Run3/20181130Bilsel/dats/cytc/20181201/'
+    # ],
+    # ['/nas_data/Pilatus1M/2018_Run3/20181130Bilsel/images/cytc/20181201/',
+    # 'd-blank',
+    # '/nas_data/Pilatus1M/2018_Run3/20181130Bilsel/dats/cytc/20181201/'
+    # ],
+    # ['/nas_data/Pilatus1M/2018_Run3/20181130Bilsel/images/cytc/20181202/',
+    # 'a-cytc',
+    # '/nas_data/Pilatus1M/2018_Run3/20181130Bilsel/dats/cytc/20181202/'
+    # ],
+    # ['/nas_data/Pilatus1M/2018_Run3/20181130Bilsel/images/cytc/20181202/',
+    # 'b-cytc',
+    # '/nas_data/Pilatus1M/2018_Run3/20181130Bilsel/dats/cytc/20181202/'
+    # ],
+    # ['/nas_data/Pilatus1M/2018_Run3/20181130Bilsel/images/cytc/20181202/',
+    # 'c-cytc',
+    # '/nas_data/Pilatus1M/2018_Run3/20181130Bilsel/dats/cytc/20181202/'
+    # ],
+    # ['/nas_data/Pilatus1M/2018_Run3/20181130Bilsel/images/cytc/20181202/',
+    # 'd-cytc',
+    # '/nas_data/Pilatus1M/2018_Run3/20181130Bilsel/dats/cytc/20181202/'
+    # ],
+    # ['/nas_data/Pilatus1M/2018_Run3/20181130Bilsel/images/cytc/20181202/',
+    # 'e-cytc',
+    # '/nas_data/Pilatus1M/2018_Run3/20181130Bilsel/dats/cytc/20181202/'
+    # ],
+    # ['/nas_data/Pilatus1M/2018_Run3/20181130Bilsel/images/cytc/20181202/',
+    # 'f-cytc',
+    # '/nas_data/Pilatus1M/2018_Run3/20181130Bilsel/dats/cytc/20181202/'
+    # ],
+    # ['/nas_data/Pilatus1M/2018_Run3/20181130Bilsel/images/cytc/20181202/',
+    # 'g-buffer',
+    # '/nas_data/Pilatus1M/2018_Run3/20181130Bilsel/dats/cytc/20181202/'
+    # ],
+    # ['/nas_data/Pilatus1M/2018_Run3/20181130Bilsel/images/haas/',
+    # 'a-akblank',
+    # '/nas_data/Pilatus1M/2018_Run3/20181130Bilsel/dats/haas'
+    # ],
+    # ['/nas_data/Pilatus1M/2018_Run3/20181130Bilsel/images/haas/',
+    # 'b-akprotein',
+    # '/nas_data/Pilatus1M/2018_Run3/20181130Bilsel/dats/haas'
+    # ],
+    # ['/nas_data/Pilatus1M/2018_Run3/20181130Bilsel/images/haas/',
+    # 'c-akblank',
+    # '/nas_data/Pilatus1M/2018_Run3/20181130Bilsel/dats/haas'
+    # ],
+    # ['/nas_data/Pilatus1M/2018_Run3/20181130Bilsel/images/haas/',
+    # 'd-akprotein',
+    # '/nas_data/Pilatus1M/2018_Run3/20181130Bilsel/dats/haas'
+    # ],
+    # ['/nas_data/Pilatus1M/2018_Run3/20181130Bilsel/images/haas/',
+    # 'e-cytcnat',
+    # '/nas_data/Pilatus1M/2018_Run3/20181130Bilsel/dats/haas'
+    # ],
+    # ['/nas_data/Pilatus1M/2018_Run3/20181130Bilsel/images/haas/',
+    # 'f-cytcnatp',
+    # '/nas_data/Pilatus1M/2018_Run3/20181130Bilsel/dats/haas'
+    # ],
+    # ['/nas_data/Pilatus1M/2018_Run3/20181130Bilsel/images/sosnick/',
+    # 'a-ubbf06',
+    # '/nas_data/Pilatus1M/2018_Run3/20181130Bilsel/dats/sosnick'
+    # ],
+    # ['/nas_data/Pilatus1M/2018_Run3/20181130Bilsel/images/sosnick/',
+    # 'b-ub06',
+    # '/nas_data/Pilatus1M/2018_Run3/20181130Bilsel/dats/sosnick'
+    # ],
+    # ['/nas_data/Pilatus1M/2018_Run3/20181130Bilsel/images/sosnick/',
+    # 'c-ub06',
+    # '/nas_data/Pilatus1M/2018_Run3/20181130Bilsel/dats/sosnick'
+    # ],
+    # ['/nas_data/Pilatus1M/2018_Run3/20181130Bilsel/images/sosnick/',
+    # 'd-ub04',
+    # '/nas_data/Pilatus1M/2018_Run3/20181130Bilsel/dats/sosnick'
+    # ],
+    # ['/nas_data/Pilatus1M/2018_Run3/20181130Bilsel/images/sosnick/',
+    # 'e-ub04',
+    # '/nas_data/Pilatus1M/2018_Run3/20181130Bilsel/dats/sosnick'
+    # ],
+    # ['/nas_data/Pilatus1M/2018_Run3/20181130Bilsel/images/sosnick/',
+    # 'g-ub20',
+    # '/nas_data/Pilatus1M/2018_Run3/20181130Bilsel/dats/sosnick'
+    # ],
+    # ['/nas_data/Pilatus1M/2018_Run3/20181130Bilsel/images/sosnick/',
+    # 'h-mbp02',
+    # '/nas_data/Pilatus1M/2018_Run3/20181130Bilsel/dats/sosnick'
+    # ],
+    # ['/nas_data/Pilatus1M/2018_Run3/20181130Bilsel/images/sosnick/',
+    # 'i-mbp02',
+    # '/nas_data/Pilatus1M/2018_Run3/20181130Bilsel/dats/sosnick'
+    # ],
 ]
 
 
