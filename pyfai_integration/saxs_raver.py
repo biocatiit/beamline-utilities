@@ -7,6 +7,7 @@ import os
 import json
 import argparse
 import time
+import subprocess
 
 def init_integration(cfg_file):
     #Load a RAW.cfg file
@@ -79,7 +80,8 @@ def init_integration(cfg_file):
     fliplr = raw_settings.get('DetectorFlipLR')
     flipud = raw_settings.get('DetectorFlipUD')
 
-    ai.setup_CSR((xlen, ylen), npt=maxlen, mask=mask, pos0_range=q_range, unit='q_A^-1', split='no')
+    ai.setup_CSR((xlen, ylen), npt=maxlen, mask=mask, pos0_range=q_range, unit='q_A^-1', split='no', mask_checksum=mask.sum())
+    ai.setup_LUT((xlen, ylen), npt=maxlen, mask=mask, pos0_range=q_range, unit='q_A^-1', mask_checksum=mask.sum())
 
     return ai, mask, q_range, maxlen, normlist, do_normalization, raw_settings, calibrate_dict, fliplr, flipud
 
@@ -104,10 +106,12 @@ def pyFAIIntegrateCalibrateNormalize(img, parameters, ai, mask, q_range, maxlen,
     if use_gpu:
         method = 'nosplit_csr_ocl'
     else:
-        method = 'nosplit_csr'
+        # method = 'nosplit_csr'
+        method = 'cython'
 
     q, iq, errorbars = ai.integrate1d(img, maxlen, mask=mask, error_model='poisson',
-        unit='q_A^-1', radial_range=q_range, method = method, normalization_factor=norm_val)
+        unit='q_A^-1', radial_range=q_range, method = method, normalization_factor=norm_val,
+        safe=False)
 
     i_raw = iq[:-5]        #Last points are usually garbage they're very few pixels
                         #Cutting the last 5 points here.
@@ -172,7 +176,9 @@ def doIntegration(output_dir, ai, mask, q_range, maxlen, normlist,
     do_normalization, calibrate_dict, start_point, end_point, fliplr,
     flipud, data_file):
     print data_file
+    a = time.time()
     img, img_hdr = loadImage(data_file, fliplr, flipud)
+    print time.time() - a
     # hdrfile_info = loadHeader(data_file)
     hdrfile_info = {}
 
@@ -183,15 +189,19 @@ def doIntegration(output_dir, ai, mask, q_range, maxlen, normlist,
               'normalizations'  : {},
               'calibration_params': calibrate_dict}
 
+    a = time.time()
     q, i, err, parameters = pyFAIIntegrateCalibrateNormalize(img, parameters, ai,
-        mask, q_range, maxlen, normlist, do_normalization, True)
+        mask, q_range, maxlen, normlist, do_normalization, False)
+    print time.time() -a
 
     q = q[start_point:len(q)-end_point]
     i = i[start_point:len(i)-end_point]
     err = err[start_point:len(err)-end_point]
-
+    a = time.time()
     output_file =os.path.join(output_dir, os.path.splitext(os.path.split(data_file)[1])[0]+'.dat')
     writeDatFile(q, i, err, parameters, output_file)
+    print time.time() - a
+    return output_file
 
 def doIntegration_minimal(img, ai, mask, q_range, maxlen, start_point, end_point):
 
@@ -425,7 +435,7 @@ class MyEncoder(json.JSONEncoder):
             return super(MyEncoder, self).default(obj)
 
 def getNewFiles(target_dir, old_dir_list_dict, fprefix):
-    print 'Getting New Files'
+    # print 'Getting New Files'
     dir_list = os.listdir(target_dir)
 
     dir_list_dict = {}
@@ -457,6 +467,7 @@ if __name__ == '__main__':
     parser.add_argument('target_dir', metavar='image-dir', help='The target image directory for processing')
     parser.add_argument('-o', '--output-dir', metavar='DIR', dest='output_dir', help='The output directory for integrated .dat files (default: image-dir)')
     parser.add_argument('-f', '--fprefix', metavar='fprefix', dest='fprefix', help='The file prefix for images in the directory to process (optional, defaults to processing all .tif files)')
+    parser.add_argument('-p', '--ppu', dest='ppu', action='store_true', help='The file prefix for images in the directory to process (optional, defaults to processing all .tif files)')
 
     args = parser.parse_args()
 
@@ -476,6 +487,7 @@ if __name__ == '__main__':
         output_dir = target_dir
 
     fprefix = args.fprefix
+    ppu = args.ppu
 
     while True:
         try:
@@ -483,12 +495,13 @@ if __name__ == '__main__':
             diff_list, old_dir_list_dict = getNewFiles(target_dir, old_dir_list_dict, fprefix)
 
             # diff_list = diff_list[0::100] #Every 100th frame
-            print '%i new files to process' %(len(diff_list))
+            
             if not diff_list:
                 time.sleep(0.01)
             else:
+                print '%i new files to process' %(len(diff_list))
                 a = time.time()
-                [doIntegration(output_dir, ai, mask, q_range, maxlen, normlist,
+                outnames =[doIntegration(output_dir, ai, mask, q_range, maxlen, normlist,
                     do_normalization, calibrate_dict, start_point, end_point,
                     fliplr, flipud, os.path.join(target_dir, name)) for name, stuff in diff_list]
 
@@ -502,6 +515,10 @@ if __name__ == '__main__':
 
                 # for fname in diff_list:
                 #     print fname[0]
+
+                if ppu:
+                    out_list = '\n'.join([name.replace('/ramdisk/', '/ramdisk/./') for name in outnames])
+                    process=subprocess.Popen('echo "{}" > /var/run/grimsel_dectris_files'.format(out_list), shell=True)
 
                 run_time = time.time() -a
                 nimages = len(diff_list)
