@@ -70,7 +70,7 @@ def ion_to_scanlog(source_dir, fprefix, output_dir):
     flist.sort(key=lambda x: int(x.split('_')[-1].split('.')[0]))
 
     for fname in flist:
-        print 'Processing {}'.format(os.path.basename(fname))
+        print('Processing {}'.format(os.path.basename(fname)))
         point, time, i0, i1, pilatus_trig, shutter_trig, x, y = load_ion(fname)
 
         img_data = bin_ion(point, time, i0, i1, pilatus_trig, shutter_trig, x, y)
@@ -82,7 +82,7 @@ def ion_to_scanlog(source_dir, fprefix, output_dir):
         with open(log_name, 'w') as f:
             f.write('#Filename\tstart_time\texposure_time\tI0\tI1\tx_pos_(mm)\ty_pos_(mm)\tdistance_(mm)\n')
             for data in img_data:
-                f.write('{}_{:05}.tif\t{}\n'.format(prefix, data[0], '\t'.join(map(str, data[1:]))))
+                f.write('{}_{:04}.tif\t{}\n'.format(prefix, data[0], '\t'.join(map(str, data[1:]))))
 
 def ion_to_fulllog(source_dir, fprefix, output_dir):
     flist = glob.glob(os.path.join(source_dir, '{}*.ion'.format(fprefix)))
@@ -91,7 +91,7 @@ def ion_to_fulllog(source_dir, fprefix, output_dir):
     img_data = []
 
     for fname in flist:
-        print 'Processing {}'.format(os.path.basename(fname))
+        print('Processing {}'.format(os.path.basename(fname)))
         point, time, i0, i1, pilatus_trig, shutter_trig, x, y = load_ion(fname)
 
         binned = bin_ion(point, time, i0, i1, pilatus_trig, shutter_trig, x, y, fnum_offset=len(img_data))
