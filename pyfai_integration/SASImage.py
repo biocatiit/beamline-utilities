@@ -13,7 +13,7 @@ from scipy import optimize
 import polygonMasking as polymask
 
 #modified
-class RawGuiSettings:
+class RawGuiSettings(object):
     '''
     This object contains all the settings nessecary for the GUI.
 

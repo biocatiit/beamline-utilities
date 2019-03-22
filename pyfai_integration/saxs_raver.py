@@ -8,6 +8,9 @@ import json
 import argparse
 import time
 import subprocess
+import multiprocessing
+import Queue
+import threading
 
 def init_integration(cfg_file):
     #Load a RAW.cfg file
@@ -175,10 +178,10 @@ def pyFAIIntegrateCalibrateNormalize_minimal(img, ai, mask, q_range, maxlen):
 def doIntegration(output_dir, ai, mask, q_range, maxlen, normlist,
     do_normalization, calibrate_dict, start_point, end_point, fliplr,
     flipud, data_file):
-    print data_file
-    a = time.time()
+    # print data_file
+    # a = time.time()
     img, img_hdr = loadImage(data_file, fliplr, flipud)
-    print time.time() - a
+    # print time.time() - a
     # hdrfile_info = loadHeader(data_file)
     hdrfile_info = {}
 
@@ -189,18 +192,18 @@ def doIntegration(output_dir, ai, mask, q_range, maxlen, normlist,
               'normalizations'  : {},
               'calibration_params': calibrate_dict}
 
-    a = time.time()
+    # a = time.time()
     q, i, err, parameters = pyFAIIntegrateCalibrateNormalize(img, parameters, ai,
-        mask, q_range, maxlen, normlist, do_normalization, False)
-    print time.time() -a
+        mask, q_range, maxlen, normlist, do_normalization, True)
+    # print time.time() -a
 
     q = q[start_point:len(q)-end_point]
     i = i[start_point:len(i)-end_point]
     err = err[start_point:len(err)-end_point]
-    a = time.time()
+    # a = time.time()
     output_file =os.path.join(output_dir, os.path.splitext(os.path.split(data_file)[1])[0]+'.dat')
     writeDatFile(q, i, err, parameters, output_file)
-    print time.time() - a
+    # print time.time() - a
     return output_file
 
 def doIntegration_minimal(img, ai, mask, q_range, maxlen, start_point, end_point):
@@ -457,6 +460,72 @@ def getNewFiles(target_dir, old_dir_list_dict, fprefix):
 
     return diff_list, old_dir_list_dict
 
+
+########################################################################
+# Define a custom multiprocessing process to allow us to multiprocess these things
+
+class integration_process(multiprocessing.Process):
+
+    def __init__(self, name, cfg_file, target_dir, output_dir, file_queue,
+        file_lock, finished_queue, finished_lock):
+
+        multiprocessing.Process.__init__(self, name=name)
+
+        self.daemon = True
+
+        self.file_queue = file_queue
+        self.file_lock = file_lock
+        self.finished_queue = finished_queue
+        self.finished_lock = finished_lock
+
+        self.target_dir = target_dir
+        self.output_dir = output_dir
+
+        self.stop_event = threading.Event()
+        self.stop_event.clear()
+
+
+        (self.ai, self.mask, self.q_range, self.maxlen, self.normlist,
+            self.do_normalization, self.raw_settings, self.calibrate_dict,
+            self.fliplr, self.flipud) = init_integration(cfg_file)
+
+        self.start_point = self.raw_settings.get('StartPoint')
+        self.end_point = self.raw_settings.get('EndPoint')
+
+    def run(self):
+        while True:
+            try:
+                if self.stop_event.is_set():
+                    break
+
+                try:
+                    self.file_lock.acquire()
+                    filename = self.file_queue.get_nowait()
+                except Queue.Empty:
+                    filename = None
+                finally:
+                    self.file_lock.release()
+
+                if filename is not None:
+                    outname = doIntegration(self.output_dir, self.ai, self.mask,
+                        self.q_range, self.maxlen, self.normlist,
+                        self.do_normalization, self.calibrate_dict, self.start_point,
+                        self.end_point, self.fliplr, self.flipud,
+                        os.path.join(self.target_dir, filename))
+
+                    self.finished_lock.acquire()
+                    self.finished_queue.put_nowait(outname)
+                    self.finished_lock.release()
+                else:
+                    time.sleep(0.01)
+            except KeyboardInterrupt:
+                break
+
+    def stop(self):
+        self.stop_event.set()
+
+
+
 ########################################################################
 #Run things
 
@@ -467,16 +536,11 @@ if __name__ == '__main__':
     parser.add_argument('target_dir', metavar='image-dir', help='The target image directory for processing')
     parser.add_argument('-o', '--output-dir', metavar='DIR', dest='output_dir', help='The output directory for integrated .dat files (default: image-dir)')
     parser.add_argument('-f', '--fprefix', metavar='fprefix', dest='fprefix', help='The file prefix for images in the directory to process (optional, defaults to processing all .tif files)')
-    parser.add_argument('-p', '--ppu', dest='ppu', action='store_true', help='The file prefix for images in the directory to process (optional, defaults to processing all .tif files)')
-
+    parser.add_argument('-p', '--ppu', dest='ppu', action='store_true', help='Indicates if script is being run on a ppu')
+    parser.add_argument('-n', '--ncores', dest='ncores', default=multiprocessing.cpu_count(), help='Indicates number of cores to use (optional, defaults to number of cores available)')
     args = parser.parse_args()
 
     cfg_file = args.cfg
-
-    ai, mask, q_range, maxlen, normlist, do_normalization, raw_settings, calibrate_dict, fliplr, flipud = init_integration(cfg_file)
-
-    start_point = raw_settings.get('StartPoint')
-    end_point = raw_settings.get('EndPoint')
 
     target_dir = args.target_dir
     old_dir_list_dict = {}
@@ -486,8 +550,28 @@ if __name__ == '__main__':
     else:
         output_dir = target_dir
 
+    ncores = int(args.ncores)
+
     fprefix = args.fprefix
     ppu = args.ppu
+
+    if ncores == 1:
+        ai, mask, q_range, maxlen, normlist, do_normalization, raw_settings, calibrate_dict, fliplr, flipud = init_integration(cfg_file)
+        start_point = raw_settings.get('StartPoint')
+        end_point = raw_settings.get('EndPoint')
+    else:
+        my_manager = multiprocessing.Manager()
+        file_queue = my_manager.Queue()
+        file_lock = my_manager.Lock()
+        finished_queue = my_manager.Queue()
+        finished_lock = my_manager.Lock()
+
+        processes = [integration_process('ai_{}'.format(i), cfg_file,
+            target_dir, output_dir, file_queue, file_lock, finished_queue,
+            finished_lock) for i in range(ncores)]
+
+        for process in processes:
+            process.start()
 
     while True:
         try:
@@ -495,26 +579,46 @@ if __name__ == '__main__':
             diff_list, old_dir_list_dict = getNewFiles(target_dir, old_dir_list_dict, fprefix)
 
             # diff_list = diff_list[0::100] #Every 100th frame
-            
+
             if not diff_list:
                 time.sleep(0.01)
             else:
                 print '%i new files to process' %(len(diff_list))
                 a = time.time()
-                outnames =[doIntegration(output_dir, ai, mask, q_range, maxlen, normlist,
-                    do_normalization, calibrate_dict, start_point, end_point,
-                    fliplr, flipud, os.path.join(target_dir, name)) for name, stuff in diff_list]
+                if ncores == 1:
+                    outnames =[doIntegration(output_dir, ai, mask, q_range, maxlen, normlist,
+                        do_normalization, calibrate_dict, start_point, end_point,
+                        fliplr, flipud, os.path.join(target_dir, name)) for name, stuff in diff_list]
 
-                # imgs = [loadImage_minimal(os.path.join(target_dir, name), fliplr, flipud) for name, stuff in diff_list]
+                    # imgs = [loadImage_minimal(os.path.join(target_dir, name), fliplr, flipud) for name, stuff in diff_list]
 
-                # output_data = [doIntegration_minimal(img, ai, mask, q_range, maxlen, start_point, end_point) for img in imgs]
+                    # output_data = [doIntegration_minimal(img, ai, mask, q_range, maxlen, start_point, end_point) for img in imgs]
 
-                # [writeDatFile_minimal(output_data[i][0], output_data[i][1], output_data[i][2],
-                #     os.path.join(output_dir, os.path.splitext(os.path.split(diff_list[i][0])[1])[0]+'.dat'))
-                #     for i in xrange(len(diff_list))]
+                    # [writeDatFile_minimal(output_data[i][0], output_data[i][1], output_data[i][2],
+                    #     os.path.join(output_dir, os.path.splitext(os.path.split(diff_list[i][0])[1])[0]+'.dat'))
+                    #     for i in xrange(len(diff_list))]
 
-                # for fname in diff_list:
-                #     print fname[0]
+                    # for fname in diff_list:
+                    #     print fname[0]
+
+                else:
+                    file_lock.acquire()
+                    for name, stuff in diff_list:
+                        file_queue.put_nowait(name)
+                    file_lock.release()
+
+                    outnames = []
+
+                    while len(outnames) != len(diff_list):
+                        try:
+                            finished_lock.acquire()
+                            outname = finished_queue.get_nowait()
+                            outnames.append(outname)
+
+                        except Queue.Empty:
+                            pass
+                        finally:
+                            finished_lock.release()
 
                 if ppu:
                     out_list = '\n'.join([name.replace('/ramdisk/', '/ramdisk/./') for name in outnames])
@@ -526,4 +630,8 @@ if __name__ == '__main__':
 
 
         except KeyboardInterrupt:
+            if ncores != 1:
+                for process in processes:
+                    process.stop()
+                    process.join()
             break
