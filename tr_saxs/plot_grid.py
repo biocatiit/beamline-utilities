@@ -17,7 +17,8 @@ pos = []
 
 x_vals = np.array(sorted(list(set(x))))
 y_vals = np.array(sorted(list(set(y))))
-i_vals = np.array(i, dtype=float).reshape((y_vals.size, x_vals.size))
+i_vals = np.array(i, dtype=float).reshape((x_vals.size, y_vals.size))
+i_vals = np.rot90(i_vals)
 
 if x[0] > x[-1]:
     i_vals = i_vals[:,::-1]
@@ -53,9 +54,9 @@ elif plottype == 'y':
         side2 = np.where(i_vals[:,i]>max_val*.8)[0][-1]
         cen_pos = int((side2+side1)/2)
 
-        center_positions.append(cen_pos)
+        center_positions.append(y_vals[cen_pos])
 
-        plt.plot(y_vals, i_vals[:,i], label='X={}, Center={}'.format(x, cen_pos))
+        plt.plot(y_vals, i_vals[:,i], label='X={}, Center={}'.format(x, y_vals[cen_pos]))
 
 if plottype == 'y' or plottype == 'x':
     plt.legend()

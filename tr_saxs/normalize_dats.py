@@ -18,9 +18,21 @@ def parseBioCATlogfile(filename):
 
     line_num=0
 
-    test_idx = int(searchName.split('_')[-1])
+    counters = {}
 
-    searchName = searchName + '.'
+    for i, line in enumerate(allLines):
+        if line.startswith('#'):
+            if line.startswith('#Filename') or line.startswith('#image'):
+                labels = line.strip('#').split('\t')
+                offset = i
+            else:
+                key = line.strip('#').split(':')[0]
+                val = ':'.join(line.strip('#').split(':')[1:])
+                counters[key] = val
+        else:
+            break
+
+    test_idx = int(searchName.split('_')[-1]) + offset
 
     if searchName in allLines[test_idx]:
         line_num = test_idx
@@ -30,15 +42,10 @@ def parseBioCATlogfile(filename):
                 line_num=a
 
     if line_num>0:
-        labels=allLines[0].split('\t')
         vals=allLines[line_num].split('\t')
 
-        counters = {labels[a]:vals[a] for a in range(len(labels))}
-    else:
-        counters = {}
-
-    counters = {key.replace(' ', '_').translate(None, '()[]') if isinstance(key, str) else key : counters[key] for key in counters}
-    counters = {key : unicode(counters[key], errors='ignore') if isinstance(counters[key], str) else counters[key] for key in counters}
+        for a in range(len(labels)):
+            counters[labels[a]] = vals[a]
 
     return counters
 
@@ -167,24 +174,25 @@ def writeDatFile(q, i, err, header, filename):
         f2.write('\n')
         writeHeader(header, f2)
 
-def load_and_normalize_dat(filename, norm_by='I1'):
+def load_and_normalize_dat(filename, source_dir, log_dir, norm_by='I1'):
     q, i, err, params = loadPrimusDatFile(filename)
-    counters = parseBioCATlogfile(filename)
+    counters = parseBioCATlogfile(filename.replace(source_dir, log_dir))
 
     params['counters'] = counters
 
     i = i/float(counters[norm_by])
+    err = err/float(counters[norm_by])
 
     return q, i, err, params
 
-def normalize_dats(source_dir, fprefix, output_dir):
+def normalize_dats(source_dir, fprefix, output_dir, log_dir):
     flist = glob.glob(os.path.join(source_dir, '{}*.dat'.format(fprefix)))
     flist.sort(key=lambda x: (int(x.split('_')[-2]),
         int(x.split('_')[-1].split('.')[0])))
 
     for fname in flist:
         print(fname)
-        q, i, err, params = load_and_normalize_dat(fname)
+        q, i, err, params = load_and_normalize_dat(fname, source_dir, log_dir)
 
         outname = os.path.join(output_dir, os.path.basename(fname))
 
@@ -195,8 +203,8 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Normalize .dat files')
     parser.add_argument('source_dir', help='The directory with the files')
     parser.add_argument('file_prefix',help='The file prefix to process')
-    parser.add_argument('-o', '--output-dir', metavar='DIR', dest='output_dir', help='The output directory for renamed files (default: source_dir)')
-
+    parser.add_argument('-o', '--output-dir', metavar='DIR', dest='output_dir', help='The output directory for normalized files (default: source_dir)')
+    parser.add_argument('-l', '--log-dir', metavar='DIR', dest='log_dir', help='The directory of the log file (default: source directory)')
     args = parser.parse_args()
 
     source_dir = args.source_dir
@@ -207,4 +215,9 @@ if __name__ == '__main__':
     else:
         output_dir = source_dir
 
-    normalize_dats(source_dir, fprefix, output_dir)
+    if args.log_dir is not None:
+        log_dir = args.log_dir
+    else:
+        log_dir = source_dir
+
+    normalize_dats(source_dir, fprefix, output_dir, log_dir)

@@ -14,7 +14,7 @@ with open(fname,'rU') as f:
 
 for i, line in enumerate(all_lines):
     if line.startswith('#Filename') or line.startswith('#image'):
-        labels = line.strip('#').split('\t')
+        labels = line.strip('#\n').split('\t')
         offset = i
 
 vals = [[] for i in range(len(labels))]
@@ -28,7 +28,10 @@ for i in range(offset+1, len(all_lines)):
 log_values = {}
 
 for i, label in enumerate(labels):
-    log_values[label] = vals[i]
+    if label == 'Filename':
+        log_values[label] = vals[i]
+    else:
+        log_values[label] = np.array(vals[i], dtype=float)
 
 x = log_values['x']
 y = log_values['y']

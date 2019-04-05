@@ -11,18 +11,21 @@ if len(sys.argv)>2:
 else:
     plottype = 'y'
 
-flist = glob.glob(base_fname+'*.log')
+flist = glob.glob(base_fname+'??.log')
 
+flist = sorted(flist, key=lambda x: int(x.split('_')[-1].strip('.log')))
 
-for i, f in enumerate(flist):
-    print(f)
+# flist = [flist[i] for i in range(0, len(flist), 10)]
 
-    with open(f,'rU') as f:
+for k, fname in enumerate(flist):
+    print(fname)
+
+    with open(fname,'rU') as f:
         all_lines=f.readlines()
 
     for i, line in enumerate(all_lines):
         if line.startswith('#Filename') or line.startswith('#image'):
-            labels = line.strip('#').split('\t')
+            labels = line.strip('#\n').split('\t')
             offset = i
 
     vals = [[] for i in range(len(labels))]
@@ -36,7 +39,10 @@ for i, f in enumerate(flist):
     log_values = {}
 
     for i, label in enumerate(labels):
-        log_values[label] = vals[i]
+        if label == 'Filename':
+            log_values[label] = vals[i]
+        else:
+            log_values[label] = np.array(vals[i], dtype=float)
 
     x = log_values['x']
     y = log_values['y']
@@ -49,6 +55,8 @@ for i, f in enumerate(flist):
         len_data = x
 
     trans = i1/i0
+    # trans = i1
+    # trans = i0
 
     max_pos = np.argmax(trans)
 
@@ -59,7 +67,9 @@ for i, f in enumerate(flist):
 
     cen_pos = int((side2+side1)/2)
 
-    plt.plot(len_data, trans, label='%i' %(i))
+
+    # plt.plot(len_data, trans/trans[50], label='{}, cen={}'.format(i, len_data[cen_pos]))
+    plt.plot(len_data, trans, label='{}'.format(k))
 
 plt.title('Intensity scan data')
 plt.xlabel('%s distance (mm)' %(plottype))
