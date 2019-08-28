@@ -138,8 +138,11 @@ def loadPrimusDatFile(filename):
 # datadir = '/nas_data/Pilatus1M/20190326Hopkins/dats_normalized/cytc/buffer10'
 # fprefix = 'buffer10_009'
 
-datadir = '/nas_data/Pilatus1M/20190326Hopkins/dats_normalized/cytc/cytc10'
-fprefix = 'cytc10_010'
+# datadir = '/nas_data/Pilatus1M/20190326Hopkins/dats_normalized/cytc/cytc10'
+# fprefix = 'cytc10_010'
+
+datadir = '/nas_data/Pilatus1M/2018_Run3/20181130Bilsel/dats_align_norm_renum/sosnick/b-ub06'
+fprefix = 'b-ub06'
 
 
 flist = glob.glob(os.path.join(datadir,fprefix+'*.dat'))
@@ -149,7 +152,6 @@ scan_nums = sorted(list(set([int(fname.split('_')[-2]) for fname in flist])))
 total_i = []
 
 findClosest = lambda a,l:min(l,key=lambda x:abs(x-a))
-
 
 for scan in scan_nums:
     print 'Loading scan {}'.format(scan)

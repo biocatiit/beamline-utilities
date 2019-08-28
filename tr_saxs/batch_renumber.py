@@ -43,10 +43,10 @@ batch_list = [
     # 'f-cytc', nframes,
     # '/nas_data/Pilatus1M/2018_Run3/20181130Bilsel/dats_renum/cytc/20181202/f'
     # ],
-    ['/nas_data/Pilatus1M/2018_Run3/20181130Bilsel/dats/cytc/20181202',
-    'g-buffer', nframes,
-    '/nas_data/Pilatus1M/2018_Run3/20181130Bilsel/dats_renum/cytc/20181202/g'
-    ],
+    # ['/nas_data/Pilatus1M/2018_Run3/20181130Bilsel/dats/cytc/20181202',
+    # 'g-buffer', nframes,
+    # '/nas_data/Pilatus1M/2018_Run3/20181130Bilsel/dats_renum/cytc/20181202/g'
+    # ],
     # ['/nas_data/Pilatus1M/2018_Run3/20181130Bilsel/dats/haas',
     # 'a-akblank', nframes,
     # '/nas_data/Pilatus1M/2018_Run3/20181130Bilsel/dats_renum/haas/a-akblank'
@@ -92,13 +92,17 @@ batch_list = [
     # '/nas_data/Pilatus1M/2018_Run3/20181130Bilsel/dats_renum/sosnick/e-ub04'
     # ],
     # ['/nas_data/Pilatus1M/2018_Run3/20181130Bilsel/dats/sosnick',
-    # 'g-ub20', nframes,
-    # '/nas_data/Pilatus1M/2018_Run3/20181130Bilsel/dats_renum/sosnick/g-ub20'
+    # 'f-ub12', nframes,
+    # '/nas_data/Pilatus1M/2018_Run3/20181130Bilsel/dats_renum/sosnick/f-ub12'
     # ],
-    # ['/nas_data/Pilatus1M/2018_Run3/20181130Bilsel/dats/sosnick',
-    # 'h-mbp02', nframes,
-    # '/nas_data/Pilatus1M/2018_Run3/20181130Bilsel/dats_renum/sosnick/h-mbp02'
-    # ],
+    ['/nas_data/Pilatus1M/2018_Run3/20181130Bilsel/dats/sosnick',
+    'g-ub20', nframes,
+    '/nas_data/Pilatus1M/2018_Run3/20181130Bilsel/dats_renum/sosnick/g-ub20'
+    ],
+    ['/nas_data/Pilatus1M/2018_Run3/20181130Bilsel/dats/sosnick',
+    'h-mbp02', nframes,
+    '/nas_data/Pilatus1M/2018_Run3/20181130Bilsel/dats_renum/sosnick/h-mbp02'
+    ],
     # ['/nas_data/Pilatus1M/2018_Run3/20181130Bilsel/dats/sosnick',
     # 'i-mbp02', nframes,
     # '/nas_data/Pilatus1M/2018_Run3/20181130Bilsel/dats_renum/sosnick/i-mbp02'

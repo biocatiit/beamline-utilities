@@ -4,15 +4,15 @@ import numpy as np
 from PIL import Image
 
 #Input params
-image_dir = '/nas_data/Pilatus1M/2018_Run3/20181130Bilsel/images/cytc/20181202'
-image_prefix = 'b-cytc'
+image_dir = '/nas_data/Pilatus1M/20190807Srinivas/sosnick/ub2'
+image_prefix = 'ub2_041_0001'
 start_num = 1
-end_num = 1988
+end_num = 75
 
 #Output params
-output_dir = '/nas_data/Pilatus1M/2018_Run3/20181130Bilsel/processing'
+output_dir = '/nas_data/Pilatus1M/20190807Srinivas/'
 
-img_list = [os.path.join(image_dir, '{}_{:05d}.tif'.format(image_prefix, i)) for i in range(start_num, end_num+1)]
+img_list = [os.path.join(image_dir, '{}_{:04d}.tif'.format(image_prefix, i)) for i in range(start_num, end_num+1)]
 
 img = fabio.open(img_list[0])
 comp_img = np.zeros_like(img.data)
