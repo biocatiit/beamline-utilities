@@ -19,7 +19,7 @@ class SerialComm():
     ports are properly opened and closed whenever used.
     """
     def __init__(self, port=None, baudrate=9600, bytesize=serial.EIGHTBITS,
-        parity=serial.PARITY_NONE, stopbits=serial.STOPBITS_ONE, timeout=None,
+        parity=serial.PARITY_NONE, stopbits=serial.STOPBITS_ONE, timeout=1,
         xonxoff=False, rtscts=False, write_timeout=None, dsrdtr=False,
         inter_byte_timeout=None, exclusive=None):
         """
@@ -110,12 +110,8 @@ class SerialComm():
             with self.ser as s:
                 s.write(data)
                 if get_response:
-                    while not out.endswith(term_char):
-                        if s.in_waiting > 0:
-                            ret = s.read(s.in_waiting)
-                            out += ret.decode('ascii')
-
-                        time.sleep(.001)
+                    out = s.read_until('\n')
+                    out.decode('ascii')
         except ValueError:
             logger.exception("Failed to write '%s' to serial device on port %s", data, self.ser.port)
 
@@ -127,14 +123,15 @@ class SerialComm():
 class SerialFrame(wx.Frame):
 
     def __init__(self, baudrate=9600, bytesize=serial.EIGHTBITS,
-        parity=serial.PARITY_NONE, stopbits=serial.STOPBITS_ONE, term_char='>',
-        *args, **kwargs):
+        parity=serial.PARITY_NONE, stopbits=serial.STOPBITS_ONE, rtscts=True,
+        term_char='>', *args, **kwargs):
         super(SerialFrame, self).__init__(*args, **kwargs)
 
         self.baudrate = baudrate
         self.bytesize = bytesize
         self.parity = parity
         self.stopbits = stopbits
+        self.rtscts=True
         self.term_char = term_char
 
         self._get_ports()
@@ -197,13 +194,14 @@ class SerialFrame(wx.Frame):
     def _on_portchoice(self, evt):
         self.serial_device = SerialComm(port=self.com_ctrl.GetStringSelection(),
             baudrate=self.baudrate, bytesize=self.bytesize, parity=self.parity,
-            stopbits=self.stopbits)
+            stopbits=self.stopbits, rtscts=self.rtscts)
 
         self.com_ctrl.Disable()
         self.send_cmd.Enable()
 
     def _send_cmd(self, evt):
-        out = self.serial_device.write(get_response=True, term_char=self.term_char)
+        out = self.serial_device.write(self.command.GetValue(),
+            get_response=True, term_char=self.term_char)
 
         self.response.SetValue(out)
 
@@ -219,9 +217,9 @@ if __name__ == '__main__':
 
     app = wx.App()
     logger.debug('Setting up wx app')
-    frame = SerialFrame(baudrate=9600, bytesize=serial.EIGHTBITS,
-        parity=serial.PARITY_NONE, stopbits=serial.STOPBITS_ONE, term_char='>',
-        parent=None,title='Serial Control')
+    frame = SerialFrame(baudrate=19200, bytesize=serial.EIGHTBITS,
+        parity=serial.PARITY_NONE, stopbits=serial.STOPBITS_ONE, rtscts=True,
+        term_char='\r\n', parent=None,title='Serial Control')
     frame.Show()
     app.MainLoop()
 

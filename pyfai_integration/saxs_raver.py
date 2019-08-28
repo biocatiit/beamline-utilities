@@ -93,17 +93,17 @@ def pyFAIIntegrateCalibrateNormalize(img, parameters, ai, mask, q_range, maxlen,
     img_hdr = parameters['imageHeader']
     file_hdr = parameters['counters']
 
-    # if normlist is not None and do_normalization:
-    #     parameters['normalizations']['Counter_norms'] = normlist
+    if normlist is not None and do_normalization:
+        parameters['normalizations']['Counter_norms'] = normlist
 
-    #     if len(normlist) == 1 and normlist[0][0] == '/':
-    #         norm_val = calcExpression(normlist[0][1], img_hdr, file_hdr)
-    #         pyfai_norm = True
-    #     else:
-    #         norm_val = 1.
-    #         pyfai_norm = False
+        if len(normlist) == 1 and normlist[0][0] == '/':
+            norm_val = calcExpression(normlist[0][1], img_hdr, file_hdr)
+            pyfai_norm = True
+        else:
+            norm_val = 1.
+            pyfai_norm = False
 
-    norm_val = 1.
+    # norm_val = 1.
 
     #Carry out the integration
     if use_gpu:
@@ -182,8 +182,9 @@ def doIntegration(output_dir, ai, mask, q_range, maxlen, normlist,
     # a = time.time()
     img, img_hdr = loadImage(data_file, fliplr, flipud)
     # print time.time() - a
-    # hdrfile_info = loadHeader(data_file)
-    hdrfile_info = {}
+    hdrfile_info = loadHeader(data_file)
+    # hdrfile_info = {}
+    # print hdrfile_info
 
     parameters={'imageHeader'   : img_hdr,
               'counters'        : hdrfile_info,
@@ -355,7 +356,21 @@ def loadHeader(filename):
 
     line_num=0
 
-    test_idx = int(searchName.split('_')[-1])
+    hdr = {}
+
+    for i, line in enumerate(allLines):
+        if line.startswith('#'):
+            if line.startswith('#Filename') or line.startswith('#image'):
+                labels = line.strip('#').split('\t')
+                offset = i
+            else:
+                key = line.strip('#').split(':')[0].strip()
+                val = ':'.join(line.strip('#').split(':')[1:])
+                hdr[key] = val.strip()
+        else:
+            break
+
+    test_idx = int(searchName.split('_')[-1]) + offset
 
     if searchName in allLines[test_idx]:
         line_num = test_idx
@@ -365,12 +380,10 @@ def loadHeader(filename):
                 line_num=a
 
     if line_num>0:
-        labels=allLines[0].split('\t')
         vals=allLines[line_num].split('\t')
 
-        hdr = {labels[a]:vals[a] for a in range(len(labels))}
-    else:
-        hdr = {}
+        for a in range(len(labels)):
+            hdr[labels[a]] = vals[a]
 
     #Clean up headers by removing spaces in header names and non-unicode characters)
     if hdr is not None:
