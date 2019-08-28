@@ -39,10 +39,12 @@ fnum_list = [int(fname.split('_')[-1].strip('.tif')) for fname in f_list]
 fnum_list.sort()
 
 sample_image = fabio.open(f_list[0])
-img_list = [np.zeros_like(img.data) for i in range(len(fnum_list))]
+img_list = [np.zeros_like(sample_image.data) for i in range(len(fnum_list))]
 
 for my_dir in sub_dirs:
+    print my_dir
     for j, fnum in enumerate(fnum_list):
+        print fnum
         imgs = glob.glob(os.path.join(top_dir, my_dir, '{}_*_{:04d}.tif'.format(my_dir, fnum)))
         for img_name in imgs:
             img = fabio.open(img_name)
@@ -55,5 +57,5 @@ if not os.path.exists(output_dir):
     os.makedirs(output_dir)
 
 for j, img in enumerate(img_list):
-    im = Image.fromarray(comp_img)
+    im = Image.fromarray(img)
     im.save(os.path.join(output_dir, '{}_composite_{:04d}.tif'.format(os.path.split(top_dir)[-1], fnum_list[j])))
