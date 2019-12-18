@@ -551,6 +551,7 @@ if __name__ == '__main__':
     parser.add_argument('-f', '--fprefix', metavar='fprefix', dest='fprefix', help='The file prefix for images in the directory to process (optional, defaults to processing all .tif files)')
     parser.add_argument('-p', '--ppu', dest='ppu', action='store_true', help='Indicates if script is being run on a ppu')
     parser.add_argument('-n', '--ncores', dest='ncores', default=multiprocessing.cpu_count(), help='Indicates number of cores to use (optional, defaults to number of cores available)')
+    parser.add_argument('-e', 'every', dest='every', default=1, help='Process every nth frame whenever new data is found')
     args = parser.parse_args()
 
     cfg_file = args.cfg
@@ -567,6 +568,7 @@ if __name__ == '__main__':
 
     fprefix = args.fprefix
     ppu = args.ppu
+    every_nth = int(args.every)
 
     if ncores == 1:
         ai, mask, q_range, maxlen, normlist, do_normalization, raw_settings, calibrate_dict, fliplr, flipud = init_integration(cfg_file)
@@ -591,7 +593,7 @@ if __name__ == '__main__':
 
             diff_list, old_dir_list_dict = getNewFiles(target_dir, old_dir_list_dict, fprefix)
 
-            # diff_list = diff_list[0::100] #Every 100th frame
+            diff_list = diff_list[0::every_nth] #Every nth frame
 
             if not diff_list:
                 time.sleep(0.01)

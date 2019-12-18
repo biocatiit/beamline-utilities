@@ -29,8 +29,35 @@ from PIL import Image
 
 
 #Input params
-top_dir = '/nas_data/Pilatus1M/2019_Run2/20190807Srinivas/martin'
-sub_dirs = ['buffer1', 'buffer2', 'buffer3', 'buffer4', 'em1', 'em2']
+# top_dir = '/nas_data/Pilatus1M/2019_Run2/20190807Srinivas/martin'
+# sub_dirs = ['buffer1', 'buffer2', 'buffer3', 'buffer4', 'em1', 'em2']
+
+#Sosnick short scans
+# top_dir = '/nas_data/Pilatus1M/2019_Run2/20190807Srinivas/sosnick'
+# sub_dirs = ['buffer2', 'buffer4', 'buffer5', 'buffer6', 'buffer7', 'buffer8',
+#     'buffer9', 'buffer10', 'ub1', 'ub3', 'ub4', 'ub5', 'ub6', 'ub7', 'ub8', 'ub9',
+#     'ub10', 'ub11', 'ub12']
+
+#Sosnick long scans
+# top_dir = '/nas_data/Pilatus1M/2019_Run2/20190807Srinivas/sosnick'
+# sub_dirs = ['buffer3', 'ub2']
+
+#Pinto scans
+# top_dir = '/nas_data/Pilatus1M/2019_Run2/20190807Srinivas/pinto'
+# sub_dirs = ['buffer1', 'twt1', 'twt2', 'twt3', 'tmt1', 'tmt2', 'tmt3']
+
+#Native cytc
+# top_dir = '/nas_data/Pilatus1M/2019_Run2/20190807Srinivas/cytc'
+# sub_dirs = ['native_buffer1', 'native_cytc1']
+
+#Refolding cytc, 8/8
+# top_dir = '/nas_data/Pilatus1M/2019_Run2/20190807Srinivas/cytc'
+# sub_dirs = ['buffer2', 'buffer3', 'cytc2' 'cytc3']
+
+# #Refolding cytc, 8/9
+top_dir = '/nas_data/Pilatus1M/2019_Run2/20190807Srinivas/cytc'
+sub_dirs = ['buffer4', 'buffer5', 'cytc4' 'cytc5']
+
 
 fdir = os.path.join(top_dir, sub_dirs[0])
 
@@ -51,11 +78,13 @@ for my_dir in sub_dirs:
             img_list[j] = img_list[j] + img.data
 
 #Output params
-output_dir = '/nas_data/Pilatus1M/2019_Run2/20190807Srinivas/processing/composite_images'
+# output_dir = '/nas_data/Pilatus1M/2019_Run2/20190807Srinivas/processing/composite_images'
+output_dir = '/nas_data/Pilatus1M/2019_Run2/20190807Srinivas/processing/cytc_composite_images'
 
 if not os.path.exists(output_dir):
     os.makedirs(output_dir)
 
 for j, img in enumerate(img_list):
     im = Image.fromarray(img)
-    im.save(os.path.join(output_dir, '{}_composite_{:04d}.tif'.format(os.path.split(top_dir)[-1], fnum_list[j])))
+    # im.save(os.path.join(output_dir, '{}_composite_{:04d}.tif'.format(os.path.split(top_dir)[-1], fnum_list[j])))
+    im.save(os.path.join(output_dir, '{}_composite_{:04d}.tif'.format('cytc_0809', fnum_list[j])))
