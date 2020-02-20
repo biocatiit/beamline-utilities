@@ -1,8 +1,6 @@
-import pyFAI
+
 import numpy as np
 import math
-import SASImage
-import fabio
 import os
 import json
 import argparse
@@ -11,17 +9,23 @@ import subprocess
 import multiprocessing
 import Queue
 import threading
+import sys
+
+sys.path.append('/home/biocat/jbh_projects/bioxtasraw-git')
+import bioxtasraw.RAWAPI as raw
+
+import fabio
+import pyFAI
 
 def init_integration(cfg_file):
     #Load a RAW.cfg file
-    raw_settings = SASImage.RawGuiSettings()
-    SASImage.loadSettings(raw_settings,cfg_file)
+    raw_settings = raw.load_settings(cfg_file)
 
     #Get parameters
     detector = pyFAI.detector_factory("pilatus1m")
 
     masks = raw_settings.get('Masks')
-    mask = SASImage.createMaskMatrix(detector.shape, masks['BeamStopMask'][1])
+    mask = masks['BeamStopMask'][0]
     mask = np.logical_not(mask)
 
     sd_distance = raw_settings.get('SampleDistance')
