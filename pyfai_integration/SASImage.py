@@ -3,14 +3,17 @@ Created on Jul 7, 2010
 
 @author: specuser
 '''
+import json
+import cPickle
+import copy
 
 import numpy as np
 from scipy import optimize
-import cPickle, copy
+
 import polygonMasking as polymask
 
 #modified
-class RawGuiSettings:
+class RawGuiSettings(object):
     '''
     This object contains all the settings nessecary for the GUI.
 
@@ -65,6 +68,8 @@ class RawGuiSettings:
 
                             'UseHeaderForMask': [False, 'bool'],
                             'DetectorFlipped90':[False, 'bool'],
+                            'DetectorFlipLR' : [True, 'bool'],
+                            'DetectorFlipUD' : [False, 'bool'],
 
                             #CORRECTIONS
                             'DoSolidAngleCorrection' : [True, 'bool'],
@@ -362,34 +367,16 @@ class RawGuiSettings:
     def getAllParams(self):
         return self._params
 
-    def get(self, key):
-        return self._params[key][0]
-
-    def set(self, key, value):
-        self._params[key][0] = value
-
-    def getId(self, key):
-        return self._params[key][1]
-
-    def getType(self, key):
-        return self._params[key][2]
-
-    def getIdAndType(self, key):
-        return (self._params[key][1], self._params[key][2])
-
-    def getAllParams(self):
-        return self._params
-
-class Mask:
+class Mask():
     ''' Mask super class. Masking is used for masking out unwanted regions
     of an image '''
 
-    def __init__(self, id, img_dim, type, negative = False):
+    def __init__(self, mask_id, img_dim, mask_type, negative = False):
 
         self._is_negative_mask = negative
         self._img_dimension = img_dim            # need image Dimentions to get the correct fill points
-        self._mask_id = id
-        self._type = type
+        self._mask_id = mask_id
+        self._type = mask_type
         self._points = None
 
     def setAsNegativeMask(self):
@@ -418,6 +405,9 @@ class Mask:
 
     def getFillPoints(self):
         pass    # overridden when inherited
+
+    def getSaveFormat(self):
+        pass   # overridden when inherited
 
 class CircleMask(Mask):
     ''' Create a circular mask '''
@@ -473,7 +463,6 @@ class CircleMask(Mask):
 
         radiusC = abs(self._points[1][0] - self._points[0][0])
 
-        #P = bresenhamCirclePoints(radiusC, imgDim[0] - self._points[0][1], self._points[0][0])
         P = calcBresenhamCirclePoints(radiusC, self._points[0][1], self._points[0][0])
 
         fillPoints = []
@@ -488,12 +477,20 @@ class CircleMask(Mask):
             q_lr2 = ( Pp[5][1], range( int(Pp[7][0]), int(Pp[5][0]+1)) )
 
             for i in range(0, len(q_ud1[1])):
-                fillPoints.append( (q_ud1[0], q_ud1[1][i]) )
-                fillPoints.append( (q_ud2[0], q_ud2[1][i]) )
-                fillPoints.append( (q_lr1[1][i], q_lr1[0]) )
-                fillPoints.append( (q_lr2[1][i], q_lr2[0]) )
+                fillPoints.append( (int(q_ud1[0]), int(q_ud1[1][i])) )
+                fillPoints.append( (int(q_ud2[0]), int(q_ud2[1][i])) )
+                fillPoints.append( (int(q_lr1[1][i]), int(q_lr1[0])) )
+                fillPoints.append( (int(q_lr2[1][i]), int(q_lr2[0])) )
 
         return fillPoints
+
+    def getSaveFormat(self):
+        save = {'type'          :   self._type,
+                'center_point'  :   self._points[0],
+                'radius_point'  :   self._points[1],
+                'negative'      :   self._is_negative_mask,
+                }
+        return save
 
 class RectangleMask(Mask):
     ''' create a retangular mask '''
@@ -549,11 +546,11 @@ class RectangleMask(Mask):
 
                 for c in range(endPointY, startPointY + 1):
                     for i in range(endPointX, startPointX + 1):
-                        fillPoints.append( (i, c) )
+                        fillPoints.append( (int(i), int(c)) )
             else:
                 for c in range(startPointY, endPointY + 1):
                     for i in range(endPointX, startPointX + 1):
-                        fillPoints.append( (i, c) )
+                        fillPoints.append( (int(i), int(c)) )
 
         else:
 
@@ -561,13 +558,21 @@ class RectangleMask(Mask):
 
                 for c in range(endPointY, startPointY + 1):
                     for i in range(startPointX, endPointX + 1):
-                        fillPoints.append( (i, c) )
+                        fillPoints.append( (int(i),int(c)) )
             else:
                 for c in range(startPointY, endPointY + 1):
                     for i in range(startPointX, endPointX + 1):
-                        fillPoints.append( (i, c) )
+                        fillPoints.append( (int(i), int(c)) )
 
         return fillPoints
+
+    def getSaveFormat(self):
+        save = {'type'          :   self._type,
+                'first_point'   :   self._points[0],
+                'second_point'  :   self._points[1],
+                'negative'      :   self._is_negative_mask,
+                }
+        return save
 
 class PolygonMask(Mask):
     ''' create a polygon mask '''
@@ -596,9 +601,16 @@ class PolygonMask(Mask):
 
         p = np.where(inside==True)
 
-        coords = polymask.getCoords(p, (yDim, xDim))
+        coords = polymask.getCoords(p, (int(yDim), int(xDim)))
 
         return coords
+
+    def getSaveFormat(self):
+        save = {'type'      :   self._type,
+                'vertices'  :   self._points,
+                'negative'  :   self._is_negative_mask,
+                }
+        return save
 
 def calcBresenhamCirclePoints(radius, xOffset = 0, yOffset = 0):
     ''' Uses the Bresenham circle algorithm for determining the points
@@ -672,11 +684,49 @@ def createMaskMatrix(img_dim, masks):
 
     return mask
 
+# def loadSettings(raw_settings, loadpath):
+
+#     file_obj = open(loadpath, 'rb')
+#     loaded_param = cPickle.load(file_obj)
+#     file_obj.close()
+
+#     keys = loaded_param.keys()
+#     all_params = raw_settings.getAllParams()
+
+#     for each_key in keys:
+#         if each_key in all_params:
+#             all_params[each_key][0] = copy.copy(loaded_param[each_key])
+
+#     # main_frame = wx.FindWindowByName('MainFrame')
+#     # main_frame.queueTaskInWorkerThread('recreate_all_masks', None)
+
+#     # fixBackwardsCompatibility(raw_settings)
+
+    # return True
+
+def readSettings(filename):
+
+    try:
+        with open(filename, 'r') as f:
+            settings = f.read()
+        settings = dict(json.loads(settings))
+    except Exception as e:
+        print e
+        try:
+            with open(filename, 'rb') as f:
+                settings = cPickle.load(f)
+        except (KeyError, EOFError, ImportError, IndexError, AttributeError, cPickle.UnpicklingError) as e:
+            print 'Error type: %s, error: %s' %(type(e).__name__, e)
+            return None
+
+    return settings
+
 def loadSettings(raw_settings, loadpath):
 
-    file_obj = open(loadpath, 'rb')
-    loaded_param = cPickle.load(file_obj)
-    file_obj.close()
+    loaded_param = readSettings(loadpath)
+
+    if loaded_param is None:
+        return False
 
     keys = loaded_param.keys()
     all_params = raw_settings.getAllParams()
@@ -685,9 +735,40 @@ def loadSettings(raw_settings, loadpath):
         if each_key in all_params:
             all_params[each_key][0] = copy.copy(loaded_param[each_key])
 
-    # main_frame = wx.FindWindowByName('MainFrame')
-    # main_frame.queueTaskInWorkerThread('recreate_all_masks', None)
+    default_settings = RawGuiSettings().getAllParams()
 
-    # fixBackwardsCompatibility(raw_settings)
+    for key in default_settings.keys():
+        if key not in loaded_param:
+            all_params[key] = default_settings[key]
+
+    postProcess(raw_settings)
 
     return True
+
+def postProcess(raw_settings):
+
+    masks = copy.copy(raw_settings.get('Masks'))
+
+    for mask_type in masks.keys():
+        mask_list = masks[mask_type][1]
+        if mask_list is not None:
+            img_dim = raw_settings.get('MaskDimension')
+
+            for i, mask in enumerate(mask_list):
+                if isinstance(mask, dict):
+                    if mask['type'] == 'circle':
+                        mask = CircleMask(mask['center_point'],
+                            mask['radius_point'], i, img_dim, mask['negative'])
+                    elif mask['type'] == 'rectangle':
+                        mask = RectangleMask(mask['first_point'],
+                            mask['second_point'], i, img_dim, mask['negative'])
+                    elif mask['type'] == 'polygon':
+                        mask = PolygonMask(mask['vertices'], i, img_dim,
+                            mask['negative'])
+                mask_list[i] = mask
+
+            masks[mask_type][1] = mask_list
+
+    raw_settings.set('Masks', masks)
+
+    return
