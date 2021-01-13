@@ -1,0 +1,5 @@
+#!/bin/bash -i
+conda activate
+pushd $HOME/beamline-control-user/data_transfer
+python transfer.py
+popd

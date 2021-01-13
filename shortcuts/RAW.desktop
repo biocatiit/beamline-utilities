@@ -1,0 +1,9 @@
+[Desktop Entry]
+Name=RAW
+Exec=start_raw
+Terminal=true
+Type=Application
+Icon=applications-science-symbolic
+Comment=
+Path=
+StartupNotify=false

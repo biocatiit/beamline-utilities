@@ -1,0 +1,9 @@
+[Desktop Entry]
+Name=Coflow VNC
+Exec=start_coflow_vnc
+Terminal=true
+Type=Application
+Icon=applications-other
+Comment=
+Path=
+StartupNotify=false

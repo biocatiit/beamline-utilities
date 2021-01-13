@@ -1,0 +1,9 @@
+[Desktop Entry]
+Name=Agilent VNC
+Exec=start_hplc_vnc
+Terminal=true
+Type=Application
+Icon=applications-other
+Comment=
+Path=
+StartupNotify=false

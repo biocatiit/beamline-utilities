@@ -1,0 +1,11 @@
+[Desktop Entry]
+Encoding=UTF-8
+Name=Data_Collection
+Exec=start_data_collection
+Terminal=true
+Type=Application
+Icon=applications-science
+StartupNotify=false
+Name[en_US.UTF-8]=Data Collection
+Comment=
+Path=

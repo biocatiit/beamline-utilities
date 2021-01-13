@@ -1,0 +1,9 @@
+[Desktop Entry]
+Name=AKTA VNC
+Exec=start_fplc_vnc
+Terminal=true
+Type=Application
+Icon=applications-other
+Comment=
+Path=
+StartupNotify=false

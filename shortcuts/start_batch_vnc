@@ -1,0 +1,3 @@
+#!/bin/bash
+#
+vncviewer 164.54.204.208 -passwd /home/biocat/.vnc/passwd

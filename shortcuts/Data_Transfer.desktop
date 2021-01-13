@@ -1,0 +1,10 @@
+[Desktop Entry]
+Name=Data_Transfer
+Exec=start_transfer
+Terminal=true
+Type=Application
+Icon=applications-other
+Comment=
+Path=
+StartupNotify=false
+Name[en_US.UTF-8]=Data Transfer

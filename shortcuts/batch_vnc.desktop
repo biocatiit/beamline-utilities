@@ -1,0 +1,11 @@
+[Desktop Entry]
+Name=Coflow VNC
+Exec=start_batch_vnc
+Terminal=true
+Type=Application
+Icon=applications-other
+Comment=
+Path=
+StartupNotify=false
+Name[en_US.UTF-8]=Batch Mode VNC
+Name[en_US.utf8]=Batch VNC
