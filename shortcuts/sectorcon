@@ -1,0 +1,4 @@
+#!/bin/bash -i
+pushd /usr/local/beamline-control-staff/catcon
+python sectorcon.py
+popd

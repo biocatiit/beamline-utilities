@@ -1,5 +1,4 @@
 #!/bin/bash -i
-conda activate py3
-pushd $HOME/raw/bioxtasraw
+pushd /usr/local/bioxtasraw/bioxtasraw
 python RAW.py
 popd

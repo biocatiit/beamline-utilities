@@ -1,0 +1,3 @@
+#!/bin/bash -i
+conda activate py2
+chiplot-analyze
