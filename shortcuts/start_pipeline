@@ -1,0 +1,4 @@
+#!/bin/bash -i
+pushd /usr/local/saxs-pipeline/pipeline/gui
+python main_gui.py
+popd
