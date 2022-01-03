@@ -18,7 +18,7 @@ for i, line in enumerate(all_lines):
         offset = i
 
 vals = [[] for i in range(len(labels))]
-
+print(labels)
 for i in range(offset+1, len(all_lines)):
     line = all_lines[i]
 
