@@ -73,94 +73,122 @@ from PIL import Image
 # sub_dirs = ['buf2_01', 'buf2_02', 'buf2_03', 'cytc2_01', 'cytc2_02']
 
 
+# Dec. 2021 chaotic
+top_dir = '/Volumes/detectors_vol1/Pilatus1M/2021_Run3/20211219_Monsen'
+sub_dirs = ['RM01', 'RM02', 'RM03', 'RM04', 'RM05']
+# sub_dirs = ['RM06']
+# sub_dirs = ['RM08', 'RM09', 'RM10']
+# sub_dirs = ['RM12', 'RM13']
+# sub_dirs = ['RM15']
+# sub_dirs = ['RM16']
+# sub_dirs = ['RM17', 'RM19', 'RM20']
+# sub_dirs = ['RM21']
+# sub_dirs = ['RM22']
 
-# fdir = os.path.join(top_dir, sub_dirs[0])
 
-# f_list = glob.glob(os.path.join(fdir, '{}_*_0001_*.tif'.format(sub_dirs[0])))
-# fnum_list = [int(fname.split('_')[-1].strip('.tif')) for fname in f_list]
-# fnum_list.sort()
 
-# sample_image = fabio.open(f_list[0])
-# img_list = [np.zeros_like(sample_image.data) for i in range(len(fnum_list))]
+fdir = os.path.join(top_dir, sub_dirs[0])
 
-# for my_dir in sub_dirs:
-#     print my_dir
-#     for j, fnum in enumerate(fnum_list):
-#         print fnum
-#         imgs = glob.glob(os.path.join(top_dir, my_dir, '{}_*_{:04d}.tif'.format(my_dir, fnum)))
-#         for img_name in imgs:
-#             img = fabio.open(img_name)
-#             img_list[j] = img_list[j] + img.data
+f_list = glob.glob(os.path.join(fdir, '{}_*_0001_*.tif'.format(sub_dirs[0])))
+fnum_list = [int(fname.split('_')[-1].strip('.tif')) for fname in f_list]
+fnum_list.sort()
+
+sample_image = fabio.open(f_list[0])
+img_list = [np.zeros_like(sample_image.data) for i in range(len(fnum_list))]
+
+for my_dir in sub_dirs:
+    print(my_dir)
+    for j, fnum in enumerate(fnum_list):
+        print(fnum)
+        imgs = glob.glob(os.path.join(top_dir, my_dir, '{}_*_{:04d}.tif'.format(my_dir, fnum)))
+        for img_name in imgs:
+            img = fabio.open(img_name)
+            img_list[j] = img_list[j] + img.data
 
 # #Output params
 # # output_dir = '/nas_data/Pilatus1M/2019_Run2/20190807Srinivas/cf_processing/composite_images'
 # output_dir = '/nas_data/Pilatus1M/2019_Run3/20191205Hopkins/cf_processing/composite_images/cytc'
-
-# if not os.path.exists(output_dir):
-#     os.makedirs(output_dir)
-
-# for j, img in enumerate(img_list):
-#     im = Image.fromarray(img)
-#     # im.save(os.path.join(output_dir, '{}_composite_{:04d}.tif'.format(os.path.split(top_dir)[-1], fnum_list[j])))
-#     im.save(os.path.join(output_dir, '{}_composite_{:04d}.tif'.format('cc_1217', fnum_list[j])))
-
-
-
-# Laminar flow
-
-# top_dir = '/nas_data/Pilatus1M/2019_Run3/20191205Hopkins/martin_laminar'
-# sub_dirs = ['em01', 'em02', 'em03', 'em04', 'em05', 'em06', 'em07', 'em08',
-#     'em09', 'em10']
-
-# top_dir = '/nas_data/Pilatus1M/2019_Run3/20191205Hopkins/2019_1210Pinto'
-# sub_dirs = ['mt_01', 'mt_02', 'mt_03', 'wt_01', 'wt_02', 'wt_03', 'wt_e',
-#     'wt_eq_01', 'wt_eq_02']
-
-# top_dir = '/nas_data/Pilatus1M/2019_Run3/20191205Hopkins/na'
-# sub_dirs = ['ric_mgs_01', 'ric_01', 'ric452_mgs_01']
-# prefix = 'na'
-
-top_dir = '/nas_data/Pilatus1M/2019_Run3/20191205Hopkins/na'
-sub_dirs = ['buf_01', 'ric452_mgs_02', 'ric452_mgs_03', 'ric452_01',
-    'ric_mgo_01', 'ric_mgo_02', 'buf_02', 'ric452_mgo_01', 'buf_03']
-prefix = 'na2'
-
-# top_dir = '/nas_data/Pilatus1M/2019_Run3/20191205Hopkins/bsa'
-# sub_dirs = ['bsa_sds_01', 'bsa_sds_02', 'bsa_sds_03', 'bsa_equilib']
-# prefix = 'bsa'
-
-fdir = os.path.join(top_dir, sub_dirs[0])
-
-# f_list = glob.glob(os.path.join(fdir, '{}_???_s???_0001_*.tif'.format(sub_dirs[0]))) # For martin
-f_list = glob.glob(os.path.join(fdir, '{}_???_s????_0001_*.tif'.format(sub_dirs[0]))) #
-fnum_list = list(set([int(fname.split('_')[-1].strip('.tif')) for fname in f_list]))
-fnum_list.sort()
-step_list = list(set([fname.split('_')[-3] for fname in f_list]))
-step_list.sort()
-
-sample_image = fabio.open(f_list[0])
-step_img_list = [[np.zeros_like(sample_image.data) for i in range(len(fnum_list))] for i in range(len(step_list))]
-
-for my_dir in sub_dirs:
-    print my_dir
-    for k, step in enumerate(step_list):
-        print step
-        for j, fnum in enumerate(fnum_list):
-            print fnum
-            imgs = glob.glob(os.path.join(top_dir, my_dir, '{}_???_{}_????_{:04d}.tif'.format(my_dir, step, fnum)))
-            # print imgs
-            # print '{}_???_{}_{:04d}.tif'.format(my_dir, step, fnum)
-            for img_name in imgs:
-                img = fabio.open(img_name)
-                step_img_list[k][j] = step_img_list[k][j] + img.data
-
-#Output params
-output_dir = '/nas_data/Pilatus1M/2019_Run3/20191205Hopkins/lf_processing/composite_images/{}'.format(prefix)
+output_dir = '/Volumes/detectors_vol1/Pilatus1M/2021_Run3/20211219_Monsen/processing/composite_images/rm01_05'
+# output_dir = '/Volumes/detectors_vol1/Pilatus1M/2021_Run3/20211219_Monsen/processing/composite_images/rm06'
+# output_dir = '/Volumes/detectors_vol1/Pilatus1M/2021_Run3/20211219_Monsen/processing/composite_images/rm08_10'
+# output_dir = '/Volumes/detectors_vol1/Pilatus1M/2021_Run3/20211219_Monsen/processing/composite_images/rm12_13'
+# output_dir = '/Volumes/detectors_vol1/Pilatus1M/2021_Run3/20211219_Monsen/processing/composite_images/rm15'
+# output_dir = '/Volumes/detectors_vol1/Pilatus1M/2021_Run3/20211219_Monsen/processing/composite_images/rm16'
+# output_dir = '/Volumes/detectors_vol1/Pilatus1M/2021_Run3/20211219_Monsen/processing/composite_images/rm17_20'
+# output_dir = '/Volumes/detectors_vol1/Pilatus1M/2021_Run3/20211219_Monsen/processing/composite_images/rm21'
+# output_dir = '/Volumes/detectors_vol1/Pilatus1M/2021_Run3/20211219_Monsen/processing/composite_images/rm22'
 
 if not os.path.exists(output_dir):
     os.makedirs(output_dir)
 
-for k, step in enumerate(step_list):
-    for j, fnum in enumerate(fnum_list):
-        im = Image.fromarray(step_img_list[k][j])
-        im.save(os.path.join(output_dir, '{}_composite_{}_{:04d}.tif'.format('{}_1210'.format(prefix), step, fnum)))
+for j, img in enumerate(img_list):
+    im = Image.fromarray(img)
+    im.save(os.path.join(output_dir, '{}_composite_{:04d}.tif'.format(os.path.split(top_dir)[-1], fnum_list[j])))
+    # im.save(os.path.join(output_dir, '{}_composite_{:04d}.tif'.format('cc_1217', fnum_list[j])))
+
+
+
+# # Laminar flow
+
+# # top_dir = '/nas_data/Pilatus1M/2019_Run3/20191205Hopkins/martin_laminar'
+# # sub_dirs = ['em01', 'em02', 'em03', 'em04', 'em05', 'em06', 'em07', 'em08',
+# #     'em09', 'em10']
+
+# # top_dir = '/nas_data/Pilatus1M/2019_Run3/20191205Hopkins/martin_laminar'
+# # sub_dirs = ['em01', 'em02', 'em03', 'em04', 'em05', 'em06', 'em07', 'em08',
+# #     'em09', 'em10']
+
+# # top_dir = '/nas_data/Pilatus1M/2019_Run3/20191205Hopkins/2019_1210Pinto'
+# # sub_dirs = ['mt_01', 'mt_02', 'mt_03', 'wt_01', 'wt_02', 'wt_03', 'wt_e',
+# #     'wt_eq_01', 'wt_eq_02']
+
+# # top_dir = '/nas_data/Pilatus1M/2019_Run3/20191205Hopkins/na'
+# # sub_dirs = ['ric_mgs_01', 'ric_01', 'ric452_mgs_01']
+# # prefix = 'na'
+
+# top_dir = '/nas_data/Pilatus1M/2019_Run3/20191205Hopkins/na'
+# sub_dirs = ['buf_01', 'ric452_mgs_02', 'ric452_mgs_03', 'ric452_01',
+#     'ric_mgo_01', 'ric_mgo_02', 'buf_02', 'ric452_mgo_01', 'buf_03']
+# prefix = 'na2'
+
+# # top_dir = '/nas_data/Pilatus1M/2019_Run3/20191205Hopkins/bsa'
+# # sub_dirs = ['bsa_sds_01', 'bsa_sds_02', 'bsa_sds_03', 'bsa_equilib']
+# # prefix = 'bsa'
+
+# fdir = os.path.join(top_dir, sub_dirs[0])
+
+# f_list = glob.glob(os.path.join(fdir, '{}_???_s???_0001_*.tif'.format(sub_dirs[0]))) # For martin
+# if len(f_list) == 0:
+#     f_list = glob.glob(os.path.join(fdir, '{}_???_s????_0001_*.tif'.format(sub_dirs[0]))) #
+
+# fnum_list = list(set([int(fname.split('_')[-1].strip('.tif')) for fname in f_list]))
+# fnum_list.sort()
+# step_list = list(set([fname.split('_')[-3] for fname in f_list]))
+# step_list.sort()
+
+# sample_image = fabio.open(f_list[0])
+# step_img_list = [[np.zeros_like(sample_image.data) for i in range(len(fnum_list))] for i in range(len(step_list))]
+
+# for my_dir in sub_dirs:
+#     print my_dir
+#     for k, step in enumerate(step_list):
+#         print step
+#         for j, fnum in enumerate(fnum_list):
+#             print fnum
+#             imgs = glob.glob(os.path.join(top_dir, my_dir, '{}_???_{}_????_{:04d}.tif'.format(my_dir, step, fnum)))
+#             # print imgs
+#             # print '{}_???_{}_{:04d}.tif'.format(my_dir, step, fnum)
+#             for img_name in imgs:
+#                 img = fabio.open(img_name)
+#                 step_img_list[k][j] = step_img_list[k][j] + img.data
+
+# #Output params
+# output_dir = '/nas_data/Pilatus1M/2019_Run3/20191205Hopkins/lf_processing/composite_images/{}'.format(prefix)
+
+# if not os.path.exists(output_dir):
+#     os.makedirs(output_dir)
+
+# for k, step in enumerate(step_list):
+#     for j, fnum in enumerate(fnum_list):
+#         im = Image.fromarray(step_img_list[k][j])
+#         im.save(os.path.join(output_dir, '{}_composite_{}_{:04d}.tif'.format('{}_1210'.format(prefix), step, fnum)))
