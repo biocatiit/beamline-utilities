@@ -2,13 +2,36 @@ import os
 import glob
 import sys
 
-os.sys.path.append('/Users/jessehopkins/Desktop/temp/bioxtasraw-git')
-os.sys.path.append(os.path.abspath('../pyfai_integration/'))
-import saxs_raver
+# os.sys.path.append('/Users/jessehopkins/Desktop/temp/bioxtasraw-git')
+# os.sys.path.append(os.path.abspath('../pyfai_integration/'))
+# import saxs_raver
 
 # sys.path.append('/home/biocat/jbh_projects/bioxtasraw-git')
 
 import bioxtasraw.RAWAPI as raw
+
+def getNewFiles(target_dir, old_dir_list_dict, fprefix):
+    # print 'Getting New Files'
+    dir_list = os.listdir(target_dir)
+
+    dir_list_dict = {}
+
+    for each_file in dir_list:
+        if os.path.splitext(each_file)[1] == '.tif':
+            if fprefix is None or each_file.startswith(fprefix):
+                try:
+                    full_path = os.path.join(target_dir, each_file)
+                    dir_list_dict[each_file] = (os.path.getmtime(full_path),
+                        os.path.getsize(full_path))
+                except OSError:
+                    pass
+
+    diff_list = list(set(dir_list_dict.items()) - set(old_dir_list_dict.items()))
+    diff_list.sort(key = lambda name: name[0])
+
+    old_dir_list_dict.update(diff_list)
+
+    return diff_list, old_dir_list_dict
 
 #March 2019
 
@@ -375,134 +398,214 @@ import bioxtasraw.RAWAPI as raw
 #     ],
 # ]
 
-# Dec 2019 laminar flow
+# # Dec 2019 laminar flow
+# batch_list = [
+#     # ['/nas_data/Pilatus1M/2019_Run3/20191205Hopkins/martin_laminar/em01/',
+#     # 'em01',
+#     # '/nas_data/Pilatus1M/2019_Run3/20191205Hopkins/lf_processing/dats/martin_lf/em01'
+#     # ],
+#     # ['/nas_data/Pilatus1M/2019_Run3/20191205Hopkins/martin_laminar/em02/',
+#     # 'em02',
+#     # '/nas_data/Pilatus1M/2019_Run3/20191205Hopkins/lf_processing/dats/martin_lf/em02'
+#     # ],
+#     # ['/nas_data/Pilatus1M/2019_Run3/20191205Hopkins/martin_laminar/em03/',
+#     # 'em03',
+#     # '/nas_data/Pilatus1M/2019_Run3/20191205Hopkins/lf_processing/dats/martin_lf/em03'
+#     # ],
+#     # ['/nas_data/Pilatus1M/2019_Run3/20191205Hopkins/martin_laminar/em04/',
+#     # 'em04',
+#     # '/nas_data/Pilatus1M/2019_Run3/20191205Hopkins/lf_processing/dats/martin_lf/em04'
+#     # ],
+#     # ['/nas_data/Pilatus1M/2019_Run3/20191205Hopkins/martin_laminar/em05/',
+#     # 'em05',
+#     # '/nas_data/Pilatus1M/2019_Run3/20191205Hopkins/lf_processing/dats/martin_lf/em05'
+#     # ],
+#     # ['/Volumes/detectors_vol1/Pilatus1M/2019_Run3/20191205Hopkins/martin_laminar/em06/',
+#     # 'em06',
+#     # '/Volumes/detectors_vol1/Pilatus1M/2019_Run3/20191205Hopkins/lf_processing/dats/martin_lf/em06'
+#     # ],
+#     # ['/nas_data/Pilatus1M/2019_Run3/20191205Hopkins/martin_laminar/em07/',
+#     # 'em07',
+#     # '/nas_data/Pilatus1M/2019_Run3/20191205Hopkins/lf_processing/dats/martin_lf/em07'
+#     # ],
+#     # ['/nas_data/Pilatus1M/2019_Run3/20191205Hopkins/martin_laminar/em08/',
+#     # 'em08',
+#     # '/nas_data/Pilatus1M/2019_Run3/20191205Hopkins/lf_processing/dats/martin_lf/em08'
+#     # ],
+#     # ['/nas_data/Pilatus1M/2019_Run3/20191205Hopkins/martin_laminar/em09/',
+#     # 'em09',
+#     # '/nas_data/Pilatus1M/2019_Run3/20191205Hopkins/lf_processing/dats/martin_lf/em09'
+#     # ],
+#     # ['/nas_data/Pilatus1M/2019_Run3/20191205Hopkins/martin_laminar/em10/',
+#     # 'em10',
+#     # '/nas_data/Pilatus1M/2019_Run3/20191205Hopkins/lf_processing/dats/martin_lf/em10'
+#     # ],
+#     # ['/Volumes/detectors_vol1/Pilatus1M/2019_Run3/20191205Hopkins/2019_1210Pinto/mt_01',
+#     # 'mt_01',
+#     # '/Volumes/detectors_vol1/Pilatus1M/2019_Run3/20191205Hopkins/lf_processing/dats/pinto_lf/mt_01'
+#     # ],
+#     # ['/Volumes/detectors_vol1/Pilatus1M/2019_Run3/20191205Hopkins/2019_1210Pinto/mt_02',
+#     # 'mt_02',
+#     # '/Volumes/detectors_vol1/Pilatus1M/2019_Run3/20191205Hopkins/lf_processing/dats/pinto_lf/mt_02'
+#     # ],
+#     # ['/Volumes/detectors_vol1/Pilatus1M/2019_Run3/20191205Hopkins/2019_1210Pinto/mt_03',
+#     # 'mt_03',
+#     # '/Volumes/detectors_vol1/Pilatus1M/2019_Run3/20191205Hopkins/lf_processing/dats/pinto_lf/mt_03'
+#     # ],
+#     # ['/Volumes/detectors_vol1/Pilatus1M/2019_Run3/20191205Hopkins/2019_1210Pinto/wt_01',
+#     # 'wt_01',
+#     # '/Volumes/detectors_vol1/Pilatus1M/2019_Run3/20191205Hopkins/lf_processing/dats/pinto_lf/wt_01'
+#     # ],
+#     # ['/Volumes/detectors_vol1/Pilatus1M/2019_Run3/20191205Hopkins/2019_1210Pinto/wt_02',
+#     # 'wt_02',
+#     # '/Volumes/detectors_vol1/Pilatus1M/2019_Run3/20191205Hopkins/lf_processing/dats/pinto_lf/wt_02'
+#     # ],
+#     # ['/Volumes/detectors_vol1/Pilatus1M/2019_Run3/20191205Hopkins/2019_1210Pinto/wt_03',
+#     # 'wt_03',
+#     # '/Volumes/detectors_vol1/Pilatus1M/2019_Run3/20191205Hopkins/lf_processing/dats/pinto_lf/wt_03'
+#     # ],
+#     # ['/Volumes/detectors_vol1/Pilatus1M/2019_Run3/20191205Hopkins/2019_1210Pinto/wt_eq_01',
+#     # 'wt_eq_01',
+#     # '/Volumes/detectors_vol1/Pilatus1M/2019_Run3/20191205Hopkins/lf_processing/dats/pinto_lf/wt_eq_01'
+#     # ],
+#     # ['/Volumes/detectors_vol1/Pilatus1M/2019_Run3/20191205Hopkins/2019_1210Pinto/wt_eq_02',
+#     # 'wt_eq_02',
+#     # '/Volumes/detectors_vol1/Pilatus1M/2019_Run3/20191205Hopkins/lf_processing/dats/pinto_lf/wt_eq_02'
+#     # ],
+#     # ['/Volumes/detectors_vol1/Pilatus1M/2019_Run3/20191205Hopkins/na/ric_mgs_01',
+#     # 'ric_mgs_01',
+#     # '/Volumes/detectors_vol1/Pilatus1M/2019_Run3/20191205Hopkins/lf_processing/dats/na_lf/ric_mgs_01'
+#     # ],
+#     # ['/Volumes/detectors_vol1/Pilatus1M/2019_Run3/20191205Hopkins/na/ric_01',
+#     # 'ric_01',
+#     # '/Volumes/detectors_vol1/Pilatus1M/2019_Run3/20191205Hopkins/lf_processing/dats/na_lf/ric_01'
+#     # ],
+#     # ['/Volumes/detectors_vol1/Pilatus1M/2019_Run3/20191205Hopkins/na/ric452_mgs_01',
+#     # 'ric452_mgs_01',
+#     # '/Volumes/detectors_vol1/Pilatus1M/2019_Run3/20191205Hopkins/lf_processing/dats/na_lf/ric452_mgs_01'
+#     # ],
+#     # ['/Volumes/detectors_vol1/Pilatus1M/2019_Run3/20191205Hopkins/na/buf_01',
+#     # 'buf_01',
+#     # '/Volumes/detectors_vol1/Pilatus1M/2019_Run3/20191205Hopkins/lf_processing/dats/na_lf/buf_01'
+#     # ],
+#     # ['/Volumes/detectors_vol1/Pilatus1M/2019_Run3/20191205Hopkins/na/ric452_mgs_02',
+#     # 'ric452_mgs_02',
+#     # '/Volumes/detectors_vol1/Pilatus1M/2019_Run3/20191205Hopkins/lf_processing/dats/na_lf/ric452_mgs_02'
+#     # ],
+#     # ['/Volumes/detectors_vol1/Pilatus1M/2019_Run3/20191205Hopkins/na/ric452_mgs_03',
+#     # 'ric452_mgs_03',
+#     # '/Volumes/detectors_vol1/Pilatus1M/2019_Run3/20191205Hopkins/lf_processing/dats/na_lf/ric452_mgs_03'
+#     # ],
+#     # ['/Volumes/detectors_vol1/Pilatus1M/2019_Run3/20191205Hopkins/na/ric452_01',
+#     # 'ric452_01',
+#     # '/Volumes/detectors_vol1/Pilatus1M/2019_Run3/20191205Hopkins/lf_processing/dats/na_lf/ric452_01'
+#     # ],
+#     # ['/Volumes/detectors_vol1/Pilatus1M/2019_Run3/20191205Hopkins/na/ric_mgo_01',
+#     # 'ric_mgo_01',
+#     # '/Volumes/detectors_vol1/Pilatus1M/2019_Run3/20191205Hopkins/lf_processing/dats/na_lf/ric_mgo_01'
+#     # ],
+#     ['/Volumes/detectors_vol1/Pilatus1M/2019_Run3/20191205Hopkins/na/ric_mgo_02',
+#     'ric_mgo_02',
+#     '/Volumes/detectors_vol1/Pilatus1M/2019_Run3/20191205Hopkins/lf_processing/dats/na_lf/ric_mgo_02'
+#     ],
+#     ['/Volumes/detectors_vol1/Pilatus1M/2019_Run3/20191205Hopkins/na/buf_02',
+#     'buf_02',
+#     '/Volumes/detectors_vol1/Pilatus1M/2019_Run3/20191205Hopkins/lf_processing/dats/na_lf/buf_02'
+#     ],
+#     ['/Volumes/detectors_vol1/Pilatus1M/2019_Run3/20191205Hopkins/na/ric452_mgo_01',
+#     'ric452_mgo_01',
+#     '/Volumes/detectors_vol1/Pilatus1M/2019_Run3/20191205Hopkins/lf_processing/dats/na_lf/ric452_mgo_01'
+#     ],
+#     ['/Volumes/detectors_vol1/Pilatus1M/2019_Run3/20191205Hopkins/na/buf_03',
+#     'buf_03',
+#     '/Volumes/detectors_vol1/Pilatus1M/2019_Run3/20191205Hopkins/lf_processing/dats/na_lf/buf_03'
+#     ],
+# ]
+
 batch_list = [
-    # ['/nas_data/Pilatus1M/2019_Run3/20191205Hopkins/martin_laminar/em01/',
-    # 'em01',
-    # '/nas_data/Pilatus1M/2019_Run3/20191205Hopkins/lf_processing/dats/martin_lf/em01'
+    # ['/nas_data/Pilatus1M/2021_Run3/20211219_Monsen/RM01',
+    # 'RM01',
+    # '/nas_data/Pilatus1M/2021_Run3/20211219_Monsen/processing/profiles/RM01'
     # ],
-    # ['/nas_data/Pilatus1M/2019_Run3/20191205Hopkins/martin_laminar/em02/',
-    # 'em02',
-    # '/nas_data/Pilatus1M/2019_Run3/20191205Hopkins/lf_processing/dats/martin_lf/em02'
-    # ],
-    # ['/nas_data/Pilatus1M/2019_Run3/20191205Hopkins/martin_laminar/em03/',
-    # 'em03',
-    # '/nas_data/Pilatus1M/2019_Run3/20191205Hopkins/lf_processing/dats/martin_lf/em03'
-    # ],
-    # ['/nas_data/Pilatus1M/2019_Run3/20191205Hopkins/martin_laminar/em04/',
-    # 'em04',
-    # '/nas_data/Pilatus1M/2019_Run3/20191205Hopkins/lf_processing/dats/martin_lf/em04'
-    # ],
-    # ['/nas_data/Pilatus1M/2019_Run3/20191205Hopkins/martin_laminar/em05/',
-    # 'em05',
-    # '/nas_data/Pilatus1M/2019_Run3/20191205Hopkins/lf_processing/dats/martin_lf/em05'
-    # ],
-    # ['/Volumes/detectors_vol1/Pilatus1M/2019_Run3/20191205Hopkins/martin_laminar/em06/',
-    # 'em06',
-    # '/Volumes/detectors_vol1/Pilatus1M/2019_Run3/20191205Hopkins/lf_processing/dats/martin_lf/em06'
-    # ],
-    # ['/nas_data/Pilatus1M/2019_Run3/20191205Hopkins/martin_laminar/em07/',
-    # 'em07',
-    # '/nas_data/Pilatus1M/2019_Run3/20191205Hopkins/lf_processing/dats/martin_lf/em07'
-    # ],
-    # ['/nas_data/Pilatus1M/2019_Run3/20191205Hopkins/martin_laminar/em08/',
-    # 'em08',
-    # '/nas_data/Pilatus1M/2019_Run3/20191205Hopkins/lf_processing/dats/martin_lf/em08'
-    # ],
-    # ['/nas_data/Pilatus1M/2019_Run3/20191205Hopkins/martin_laminar/em09/',
-    # 'em09',
-    # '/nas_data/Pilatus1M/2019_Run3/20191205Hopkins/lf_processing/dats/martin_lf/em09'
-    # ],
-    # ['/nas_data/Pilatus1M/2019_Run3/20191205Hopkins/martin_laminar/em10/',
-    # 'em10',
-    # '/nas_data/Pilatus1M/2019_Run3/20191205Hopkins/lf_processing/dats/martin_lf/em10'
-    # ],
-    # ['/Volumes/detectors_vol1/Pilatus1M/2019_Run3/20191205Hopkins/2019_1210Pinto/mt_01',
-    # 'mt_01',
-    # '/Volumes/detectors_vol1/Pilatus1M/2019_Run3/20191205Hopkins/lf_processing/dats/pinto_lf/mt_01'
-    # ],
-    # ['/Volumes/detectors_vol1/Pilatus1M/2019_Run3/20191205Hopkins/2019_1210Pinto/mt_02',
-    # 'mt_02',
-    # '/Volumes/detectors_vol1/Pilatus1M/2019_Run3/20191205Hopkins/lf_processing/dats/pinto_lf/mt_02'
-    # ],
-    # ['/Volumes/detectors_vol1/Pilatus1M/2019_Run3/20191205Hopkins/2019_1210Pinto/mt_03',
-    # 'mt_03',
-    # '/Volumes/detectors_vol1/Pilatus1M/2019_Run3/20191205Hopkins/lf_processing/dats/pinto_lf/mt_03'
-    # ],
-    # ['/Volumes/detectors_vol1/Pilatus1M/2019_Run3/20191205Hopkins/2019_1210Pinto/wt_01',
-    # 'wt_01',
-    # '/Volumes/detectors_vol1/Pilatus1M/2019_Run3/20191205Hopkins/lf_processing/dats/pinto_lf/wt_01'
-    # ],
-    # ['/Volumes/detectors_vol1/Pilatus1M/2019_Run3/20191205Hopkins/2019_1210Pinto/wt_02',
-    # 'wt_02',
-    # '/Volumes/detectors_vol1/Pilatus1M/2019_Run3/20191205Hopkins/lf_processing/dats/pinto_lf/wt_02'
-    # ],
-    # ['/Volumes/detectors_vol1/Pilatus1M/2019_Run3/20191205Hopkins/2019_1210Pinto/wt_03',
-    # 'wt_03',
-    # '/Volumes/detectors_vol1/Pilatus1M/2019_Run3/20191205Hopkins/lf_processing/dats/pinto_lf/wt_03'
-    # ],
-    # ['/Volumes/detectors_vol1/Pilatus1M/2019_Run3/20191205Hopkins/2019_1210Pinto/wt_eq_01',
-    # 'wt_eq_01',
-    # '/Volumes/detectors_vol1/Pilatus1M/2019_Run3/20191205Hopkins/lf_processing/dats/pinto_lf/wt_eq_01'
-    # ],
-    # ['/Volumes/detectors_vol1/Pilatus1M/2019_Run3/20191205Hopkins/2019_1210Pinto/wt_eq_02',
-    # 'wt_eq_02',
-    # '/Volumes/detectors_vol1/Pilatus1M/2019_Run3/20191205Hopkins/lf_processing/dats/pinto_lf/wt_eq_02'
-    # ],
-    # ['/Volumes/detectors_vol1/Pilatus1M/2019_Run3/20191205Hopkins/na/ric_mgs_01',
-    # 'ric_mgs_01',
-    # '/Volumes/detectors_vol1/Pilatus1M/2019_Run3/20191205Hopkins/lf_processing/dats/na_lf/ric_mgs_01'
-    # ],
-    # ['/Volumes/detectors_vol1/Pilatus1M/2019_Run3/20191205Hopkins/na/ric_01',
-    # 'ric_01',
-    # '/Volumes/detectors_vol1/Pilatus1M/2019_Run3/20191205Hopkins/lf_processing/dats/na_lf/ric_01'
-    # ],
-    # ['/Volumes/detectors_vol1/Pilatus1M/2019_Run3/20191205Hopkins/na/ric452_mgs_01',
-    # 'ric452_mgs_01',
-    # '/Volumes/detectors_vol1/Pilatus1M/2019_Run3/20191205Hopkins/lf_processing/dats/na_lf/ric452_mgs_01'
-    # ],
-    # ['/Volumes/detectors_vol1/Pilatus1M/2019_Run3/20191205Hopkins/na/buf_01',
-    # 'buf_01',
-    # '/Volumes/detectors_vol1/Pilatus1M/2019_Run3/20191205Hopkins/lf_processing/dats/na_lf/buf_01'
-    # ],
-    # ['/Volumes/detectors_vol1/Pilatus1M/2019_Run3/20191205Hopkins/na/ric452_mgs_02',
-    # 'ric452_mgs_02',
-    # '/Volumes/detectors_vol1/Pilatus1M/2019_Run3/20191205Hopkins/lf_processing/dats/na_lf/ric452_mgs_02'
-    # ],
-    # ['/Volumes/detectors_vol1/Pilatus1M/2019_Run3/20191205Hopkins/na/ric452_mgs_03',
-    # 'ric452_mgs_03',
-    # '/Volumes/detectors_vol1/Pilatus1M/2019_Run3/20191205Hopkins/lf_processing/dats/na_lf/ric452_mgs_03'
-    # ],
-    # ['/Volumes/detectors_vol1/Pilatus1M/2019_Run3/20191205Hopkins/na/ric452_01',
-    # 'ric452_01',
-    # '/Volumes/detectors_vol1/Pilatus1M/2019_Run3/20191205Hopkins/lf_processing/dats/na_lf/ric452_01'
-    # ],
-    # ['/Volumes/detectors_vol1/Pilatus1M/2019_Run3/20191205Hopkins/na/ric_mgo_01',
-    # 'ric_mgo_01',
-    # '/Volumes/detectors_vol1/Pilatus1M/2019_Run3/20191205Hopkins/lf_processing/dats/na_lf/ric_mgo_01'
-    # ],
-    ['/Volumes/detectors_vol1/Pilatus1M/2019_Run3/20191205Hopkins/na/ric_mgo_02',
-    'ric_mgo_02',
-    '/Volumes/detectors_vol1/Pilatus1M/2019_Run3/20191205Hopkins/lf_processing/dats/na_lf/ric_mgo_02'
+    ['/nas_data/Pilatus1M/2021_Run3/20211219_Monsen/RM02',
+    'RM02',
+    '/nas_data/Pilatus1M/2021_Run3/20211219_Monsen/processing/profiles/RM02'
     ],
-    ['/Volumes/detectors_vol1/Pilatus1M/2019_Run3/20191205Hopkins/na/buf_02',
-    'buf_02',
-    '/Volumes/detectors_vol1/Pilatus1M/2019_Run3/20191205Hopkins/lf_processing/dats/na_lf/buf_02'
+    ['/nas_data/Pilatus1M/2021_Run3/20211219_Monsen/RM03',
+    'RM03',
+    '/nas_data/Pilatus1M/2021_Run3/20211219_Monsen/processing/profiles/RM03'
     ],
-    ['/Volumes/detectors_vol1/Pilatus1M/2019_Run3/20191205Hopkins/na/ric452_mgo_01',
-    'ric452_mgo_01',
-    '/Volumes/detectors_vol1/Pilatus1M/2019_Run3/20191205Hopkins/lf_processing/dats/na_lf/ric452_mgo_01'
+    ['/nas_data/Pilatus1M/2021_Run3/20211219_Monsen/RM04',
+    'RM04',
+    '/nas_data/Pilatus1M/2021_Run3/20211219_Monsen/processing/profiles/RM04'
     ],
-    ['/Volumes/detectors_vol1/Pilatus1M/2019_Run3/20191205Hopkins/na/buf_03',
-    'buf_03',
-    '/Volumes/detectors_vol1/Pilatus1M/2019_Run3/20191205Hopkins/lf_processing/dats/na_lf/buf_03'
+    ['/nas_data/Pilatus1M/2021_Run3/20211219_Monsen/RM05',
+    'RM05',
+    '/nas_data/Pilatus1M/2021_Run3/20211219_Monsen/processing/profiles/RM05'
     ],
-]
+    ['/nas_data/Pilatus1M/2021_Run3/20211219_Monsen/RM06',
+    'RM06',
+    '/nas_data/Pilatus1M/2021_Run3/20211219_Monsen/processing/profiles/RM06'
+    ],
+    ['/nas_data/Pilatus1M/2021_Run3/20211219_Monsen/RM08',
+    'RM08',
+    '/nas_data/Pilatus1M/2021_Run3/20211219_Monsen/processing/profiles/RM08'
+    ],
+    ['/nas_data/Pilatus1M/2021_Run3/20211219_Monsen/RM09',
+    'RM09',
+    '/nas_data/Pilatus1M/2021_Run3/20211219_Monsen/processing/profiles/RM09'
+    ],
+    ['/nas_data/Pilatus1M/2021_Run3/20211219_Monsen/RM10',
+    'RM10',
+    '/nas_data/Pilatus1M/2021_Run3/20211219_Monsen/processing/profiles/RM10'
+    ],
+    ['/nas_data/Pilatus1M/2021_Run3/20211219_Monsen/RM12',
+    'RM12',
+    '/nas_data/Pilatus1M/2021_Run3/20211219_Monsen/processing/profiles/RM12'
+    ],
+    ['/nas_data/Pilatus1M/2021_Run3/20211219_Monsen/RM13',
+    'RM13',
+    '/nas_data/Pilatus1M/2021_Run3/20211219_Monsen/processing/profiles/RM13'
+    ],
+    ['/nas_data/Pilatus1M/2021_Run3/20211219_Monsen/RM15',
+    'RM15',
+    '/nas_data/Pilatus1M/2021_Run3/20211219_Monsen/processing/profiles/RM15'
+    ],
+    ['/nas_data/Pilatus1M/2021_Run3/20211219_Monsen/RM16',
+    'RM16',
+    '/nas_data/Pilatus1M/2021_Run3/20211219_Monsen/processing/profiles/RM16'
+    ],
+    ['/nas_data/Pilatus1M/2021_Run3/20211219_Monsen/RM17',
+    'RM17',
+    '/nas_data/Pilatus1M/2021_Run3/20211219_Monsen/processing/profiles/RM17'
+    ],
+    ['/nas_data/Pilatus1M/2021_Run3/20211219_Monsen/RM18',
+    'RM18',
+    '/nas_data/Pilatus1M/2021_Run3/20211219_Monsen/processing/profiles/RM18'
+    ],
+    ['/nas_data/Pilatus1M/2021_Run3/20211219_Monsen/RM19',
+    'RM19',
+    '/nas_data/Pilatus1M/2021_Run3/20211219_Monsen/processing/profiles/RM19'
+    ],
+    ['/nas_data/Pilatus1M/2021_Run3/20211219_Monsen/RM20',
+    'RM20',
+    '/nas_data/Pilatus1M/2021_Run3/20211219_Monsen/processing/profiles/RM20'
+    ],
+    ['/nas_data/Pilatus1M/2021_Run3/20211219_Monsen/RM21',
+    'RM21',
+    '/nas_data/Pilatus1M/2021_Run3/20211219_Monsen/processing/profiles/RM21'
+    ],
+    ['/nas_data/Pilatus1M/2021_Run3/20211219_Monsen/RM22',
+    'RM22',
+    '/nas_data/Pilatus1M/2021_Run3/20211219_Monsen/processing/profiles/RM22'
+    ],
+    ]
 
 # base_config_dir = '/nas_data/Pilatus1M/2019_Run2/20190807Srinivas/processing'
 # base_config_dir = '/nas_data/Pilatus1M/2019_Run3/20191205Hopkins/cf_processing'
 # base_config_dir = '/nas_data/Pilatus1M/2019_Run3/20191205Hopkins/lf_processing/masks'
-base_config_dir = '/Volumes/detectors_vol1/Pilatus1M/2019_Run3/20191205Hopkins/lf_processing/masks'
+# base_config_dir = '/Volumes/detectors_vol1/Pilatus1M/2019_Run3/20191205Hopkins/lf_processing/masks'
+base_config_dir = '/nas_data/Pilatus1M/2021_Run3/20211219_Monsen/processing/masks'
 
 # ai, mask, q_range, maxlen, normlist, do_normalization, raw_settings, calibrate_dict, fliplr, flipud = saxs_raver.init_integration(cfg_file)
 
@@ -511,7 +614,7 @@ base_config_dir = '/Volumes/detectors_vol1/Pilatus1M/2019_Run3/20191205Hopkins/l
 
 
 for source_dir, fprefix, output_dir in batch_list:
-    print fprefix
+    print(fprefix)
 
     try:
         old_dir_list_dict = {}
@@ -519,24 +622,24 @@ for source_dir, fprefix, output_dir in batch_list:
         if not os.path.exists(output_dir):
             os.makedirs(output_dir)
 
-        print 'Getting file list'
-        diff_list, old_dir_list_dict = saxs_raver.getNewFiles(source_dir, old_dir_list_dict, fprefix)
+        print('Getting file list')
+        diff_list, old_dir_list_dict = getNewFiles(source_dir, old_dir_list_dict, fprefix)
 
-        print 'Loading config files'
+        print('Loading config files')
         # Chaotic flow
-        # f_list = glob.glob(os.path.join(source_dir, '{}_*_0001_*.tif'.format(fprefix)))
-        # fnum_list = [int(fname.split('_')[-1].strip('.tif')) for fname in f_list]
-        # fnum_list.sort()
-
-        # Laminar flow
-        # f_list = glob.glob(os.path.join(source_dir, '{}_???_s???_0001_*.tif'.format(fprefix)))
-        f_list = glob.glob(os.path.join(source_dir, '{}_???_s???_0001_*.tif'.format(fprefix)))
-        if len(f_list) == 0:
-            f_list = glob.glob(os.path.join(source_dir, '{}_???_s????_0001_*.tif'.format(fprefix)))
-        fnum_list = list(set([int(fname.split('_')[-1].strip('.tif')) for fname in f_list]))
+        f_list = glob.glob(os.path.join(source_dir, '{}_*_0001_*.tif'.format(fprefix)))
+        fnum_list = [int(fname.split('_')[-1].strip('.tif')) for fname in f_list]
         fnum_list.sort()
-        step_list = list(set([fname.split('_')[-3] for fname in f_list]))
-        step_list.sort()
+
+        # # Laminar flow
+        # # f_list = glob.glob(os.path.join(source_dir, '{}_???_s???_0001_*.tif'.format(fprefix)))
+        # f_list = glob.glob(os.path.join(source_dir, '{}_???_s???_0001_*.tif'.format(fprefix)))
+        # if len(f_list) == 0:
+        #     f_list = glob.glob(os.path.join(source_dir, '{}_???_s????_0001_*.tif'.format(fprefix)))
+        # fnum_list = list(set([int(fname.split('_')[-1].strip('.tif')) for fname in f_list]))
+        # fnum_list.sort()
+        # step_list = list(set([fname.split('_')[-3] for fname in f_list]))
+        # step_list.sort()
 
         config_dict = {}
 
@@ -604,76 +707,109 @@ for source_dir, fprefix, output_dir in batch_list:
         #         config_dict[fnum] = config_results
 
 
-        # December 2019
-        if 'martin' in source_dir.lower():
-            for fnum in fnum_list:
-                print fnum
-                # gen_config_results = saxs_raver.init_integration(os.path.join(base_config_dir, 'em_basic_{:04d}.cfg'.format(fnum)))
-                gen_config_results = raw.load_settings(os.path.join(base_config_dir, 'em_basic_{:04d}.cfg'.format(fnum)))
-                for step in step_list:
-                    print step
-                    if os.path.exists(os.path.join(base_config_dir, 'em_{}_{:04d}.cfg'.format(step, fnum))):
-                        # print os.path.join(base_config_dir, 'em_{}_{:04d}.cfg'.format(step, fnum))
-                        # config_results = saxs_raver.init_integration(os.path.join(base_config_dir, 'em_{}_{:04d}.cfg'.format(step, fnum)))
-                        config_results = raw.load_settings(os.path.join(base_config_dir, 'em_{}_{:04d}.cfg'.format(step, fnum)))
-                    else:
-                        # print 'basic'
-                        config_results = gen_config_results
+        # # December 2019
+        # if 'martin' in source_dir.lower():
+        #     for fnum in fnum_list:
+        #         print fnum
+        #         # gen_config_results = saxs_raver.init_integration(os.path.join(base_config_dir, 'em_basic_{:04d}.cfg'.format(fnum)))
+        #         gen_config_results = raw.load_settings(os.path.join(base_config_dir, 'em_basic_{:04d}.cfg'.format(fnum)))
+        #         for step in step_list:
+        #             print step
+        #             if os.path.exists(os.path.join(base_config_dir, 'em_{}_{:04d}.cfg'.format(step, fnum))):
+        #                 # print os.path.join(base_config_dir, 'em_{}_{:04d}.cfg'.format(step, fnum))
+        #                 # config_results = saxs_raver.init_integration(os.path.join(base_config_dir, 'em_{}_{:04d}.cfg'.format(step, fnum)))
+        #                 config_results = raw.load_settings(os.path.join(base_config_dir, 'em_{}_{:04d}.cfg'.format(step, fnum)))
+        #             else:
+        #                 # print 'basic'
+        #                 config_results = gen_config_results
 
-                    config_dict[(fnum, step)] = config_results
+        #             config_dict[(fnum, step)] = config_results
 
-        elif 'pinto' in source_dir.lower():
-            for fnum in fnum_list:
-                print fnum
-                # gen_config_results = saxs_raver.init_integration(os.path.join(base_config_dir, 'em_basic_{:04d}.cfg'.format(fnum)))
-                gen_config_results = raw.load_settings(os.path.join(base_config_dir, 'jp_basic_{:04d}.cfg'.format(fnum)))
-                for step in step_list:
-                    print step
-                    if os.path.exists(os.path.join(base_config_dir, 'jp_{}_{:04d}.cfg'.format(step, fnum))):
-                        # print os.path.join(base_config_dir, 'jp_{}_{:04d}.cfg'.format(step, fnum))
-                        # config_results = saxs_raver.init_integration(os.path.join(base_config_dir, 'jp_{}_{:04d}.cfg'.format(step, fnum)))
-                        config_results = raw.load_settings(os.path.join(base_config_dir, 'jp_{}_{:04d}.cfg'.format(step, fnum)))
-                    else:
-                        # print 'basic'
-                        config_results = gen_config_results
+        # elif 'pinto' in source_dir.lower():
+        #     for fnum in fnum_list:
+        #         print fnum
+        #         # gen_config_results = saxs_raver.init_integration(os.path.join(base_config_dir, 'em_basic_{:04d}.cfg'.format(fnum)))
+        #         gen_config_results = raw.load_settings(os.path.join(base_config_dir, 'jp_basic_{:04d}.cfg'.format(fnum)))
+        #         for step in step_list:
+        #             print step
+        #             if os.path.exists(os.path.join(base_config_dir, 'jp_{}_{:04d}.cfg'.format(step, fnum))):
+        #                 # print os.path.join(base_config_dir, 'jp_{}_{:04d}.cfg'.format(step, fnum))
+        #                 # config_results = saxs_raver.init_integration(os.path.join(base_config_dir, 'jp_{}_{:04d}.cfg'.format(step, fnum)))
+        #                 config_results = raw.load_settings(os.path.join(base_config_dir, 'jp_{}_{:04d}.cfg'.format(step, fnum)))
+        #             else:
+        #                 # print 'basic'
+        #                 config_results = gen_config_results
 
-                    config_dict[(fnum, step)] = config_results
+        #             config_dict[(fnum, step)] = config_results
 
-        elif '/na/' in source_dir.lower():
-            na_list = ['ric_mgs_01', 'ric_01', 'ric452_mgs_01']
-            na2_list = ['buf_01', 'ric452_mgs_02', 'ric452_mgs_03', 'ric452_01',
-                            'ric_mgo_01', 'ric_mgo_02', 'buf_02', 'ric452_mgo_01', 'buf_03']
+        # elif '/na/' in source_dir.lower():
+        #     na_list = ['ric_mgs_01', 'ric_01', 'ric452_mgs_01']
+        #     na2_list = ['buf_01', 'ric452_mgs_02', 'ric452_mgs_03', 'ric452_01',
+        #                     'ric_mgo_01', 'ric_mgo_02', 'buf_02', 'ric452_mgo_01', 'buf_03']
 
-            if fprefix in na_list:
-                cfg_prefix = 'na'
-            elif fprefix in na2_list:
-                cfg_prefix = 'na2'
+        #     if fprefix in na_list:
+        #         cfg_prefix = 'na'
+        #     elif fprefix in na2_list:
+        #         cfg_prefix = 'na2'
 
-            for fnum in fnum_list:
-                print fnum
-                # gen_config_results = saxs_raver.init_integration(os.path.join(base_config_dir, 'em_basic_{:04d}.cfg'.format(fnum)))
-                gen_config_results = raw.load_settings(os.path.join(base_config_dir, '{}_basic_{:04d}.cfg'.format(cfg_prefix, fnum)))
-                for step in step_list:
-                    print step
-                    if os.path.exists(os.path.join(base_config_dir, '{}_{}_{:04d}.cfg'.format(cfg_prefix, step, fnum))):
-                        # print os.path.join(base_config_dir, '{}_{}_{:04d}.cfg'.format(step, fnum))
-                        # config_results = saxs_raver.init_integration(os.path.join(base_config_dir, '{}_{}_{:04d}.cfg'.format(step, fnum)))
-                        config_results = raw.load_settings(os.path.join(base_config_dir, '{}_{}_{:04d}.cfg'.format(cfg_prefix, step, fnum)))
-                    else:
-                        # print 'basic'
-                        config_results = gen_config_results
+        #     for fnum in fnum_list:
+        #         print fnum
+        #         # gen_config_results = saxs_raver.init_integration(os.path.join(base_config_dir, 'em_basic_{:04d}.cfg'.format(fnum)))
+        #         gen_config_results = raw.load_settings(os.path.join(base_config_dir, '{}_basic_{:04d}.cfg'.format(cfg_prefix, fnum)))
+        #         for step in step_list:
+        #             print step
+        #             if os.path.exists(os.path.join(base_config_dir, '{}_{}_{:04d}.cfg'.format(cfg_prefix, step, fnum))):
+        #                 # print os.path.join(base_config_dir, '{}_{}_{:04d}.cfg'.format(step, fnum))
+        #                 # config_results = saxs_raver.init_integration(os.path.join(base_config_dir, '{}_{}_{:04d}.cfg'.format(step, fnum)))
+        #                 config_results = raw.load_settings(os.path.join(base_config_dir, '{}_{}_{:04d}.cfg'.format(cfg_prefix, step, fnum)))
+        #             else:
+        #                 # print 'basic'
+        #                 config_results = gen_config_results
 
-                    config_dict[(fnum, step)] = config_results
+        #             config_dict[(fnum, step)] = config_results
 
 
-        print 'Processing images'
+        # Laminar flow Dec. 2021
+        run_num = int(source_dir.split('/')[-1].lstrip('RM'))
+
+        if 1 <= run_num and run_num <= 5:
+            sub_mask_dir = 'rm01_05'
+        elif run_num == 6:
+            sub_mask_dir = 'rm06'
+        elif 8 <= run_num and run_num <= 10:
+            sub_mask_dir = 'rm08_10'
+        elif 12 <= run_num and run_num <= 13:
+            sub_mask_dir = 'rm12_13'
+        elif run_num == 15:
+            sub_mask_dir = 'rm15'
+        elif run_num == 16:
+            sub_mask_dir = 'rm16'
+        elif 17 <= run_num and run_num <= 20:
+            sub_mask_dir = 'rm17_20'
+        elif run_num == 21:
+            sub_mask_dir = 'rm21'
+        elif run_num == 22:
+            sub_mask_dir = 'rm22'
+
+        gen_config_results = raw.load_settings(os.path.join(base_config_dir, sub_mask_dir, 'rm_basic.cfg'))
+
+        for fnum in fnum_list:
+            if os.path.exists(os.path.join(base_config_dir, sub_mask_dir, 'rm_{:04d}.cfg'.format(fnum))):
+                config_results = raw.load_settings(os.path.join(base_config_dir, sub_mask_dir, 'rm_{:04d}.cfg'.format(fnum)))
+            else:
+                config_results = gen_config_results
+
+            config_dict[fnum] = config_results
+
+        print('Processing images')
         for name, stuff in diff_list:
-            print name
+            print(name)
 
             fnum = int(name.split('_')[-1].strip('.tif'))
             step = name.split('_')[-3]
             # ai, mask, q_range, maxlen, normlist, do_normalization, raw_settings, calibrate_dict, fliplr, flipud = config_dict[(fnum, step)]
-            raw_settings = config_dict[(fnum, step)]
+            # raw_settings = config_dict[(fnum, step)]
+            raw_settings = config_dict[fnum]
             # start_point = raw_settings.get('StartPoint')
             # end_point = raw_settings.get('EndPoint')
 
@@ -686,7 +822,7 @@ for source_dir, fprefix, output_dir in batch_list:
 
             data = dats[0]
 
-            raw.save_dat(data, raw_settings, datadir=output_dir)
+            raw.save_profile(data, settings=raw_settings, datadir=output_dir)
 
     except KeyboardInterrupt:
         break

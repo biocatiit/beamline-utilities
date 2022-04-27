@@ -1,3 +1,4 @@
+import hdf5plugin
 import fabio
 import os.path
 import glob
@@ -74,23 +75,29 @@ from PIL import Image
 
 
 # Dec. 2021 chaotic
-top_dir = '/Volumes/detectors_vol1/Pilatus1M/2021_Run3/20211219_Monsen'
-sub_dirs = ['RM01', 'RM02', 'RM03', 'RM04', 'RM05']
+# top_dir = '/nas_data/Pilatus1M/2021_Run3/20211219_Monsen'
+# sub_dirs = ['RM01', 'RM02', 'RM03', 'RM04', 'RM05']
 # sub_dirs = ['RM06']
 # sub_dirs = ['RM08', 'RM09', 'RM10']
-# sub_dirs = ['RM12', 'RM13']
+#sub_dirs = ['RM12', 'RM13']
 # sub_dirs = ['RM15']
 # sub_dirs = ['RM16']
 # sub_dirs = ['RM17', 'RM19', 'RM20']
 # sub_dirs = ['RM21']
 # sub_dirs = ['RM22']
 
+# Dec. 2021 chaotic
+img_ext = 'h5'
+extra_name = 'data'
+zpad = 6
+top_dir = '/nas_data/Eiger2xe9M/2022_Run1/20220420_Hopkins/setup/water'
+sub_dirs = ['water01', 'water02', 'water03']
 
 
 fdir = os.path.join(top_dir, sub_dirs[0])
 
-f_list = glob.glob(os.path.join(fdir, '{}_*_0001_*.tif'.format(sub_dirs[0])))
-fnum_list = [int(fname.split('_')[-1].strip('.tif')) for fname in f_list]
+f_list = glob.glob(os.path.join(fdir, '{}_*_0001_{}*.{}'.format(sub_dirs[0], extra_name, img_ext)))
+fnum_list = list(set([int(fname.split('_')[-1].rstrip('{}'.format(img_ext)).rstrip('.')) for fname in f_list]))
 fnum_list.sort()
 
 sample_image = fabio.open(f_list[0])
@@ -100,7 +107,7 @@ for my_dir in sub_dirs:
     print(my_dir)
     for j, fnum in enumerate(fnum_list):
         print(fnum)
-        imgs = glob.glob(os.path.join(top_dir, my_dir, '{}_*_{:04d}.tif'.format(my_dir, fnum)))
+        imgs = glob.glob(os.path.join(top_dir, my_dir, '{}_*{}_{:0{}d}.{}'.format(my_dir, extra_name, fnum, zpad, img_ext)))
         for img_name in imgs:
             img = fabio.open(img_name)
             img_list[j] = img_list[j] + img.data
@@ -108,15 +115,16 @@ for my_dir in sub_dirs:
 # #Output params
 # # output_dir = '/nas_data/Pilatus1M/2019_Run2/20190807Srinivas/cf_processing/composite_images'
 # output_dir = '/nas_data/Pilatus1M/2019_Run3/20191205Hopkins/cf_processing/composite_images/cytc'
-output_dir = '/Volumes/detectors_vol1/Pilatus1M/2021_Run3/20211219_Monsen/processing/composite_images/rm01_05'
-# output_dir = '/Volumes/detectors_vol1/Pilatus1M/2021_Run3/20211219_Monsen/processing/composite_images/rm06'
-# output_dir = '/Volumes/detectors_vol1/Pilatus1M/2021_Run3/20211219_Monsen/processing/composite_images/rm08_10'
-# output_dir = '/Volumes/detectors_vol1/Pilatus1M/2021_Run3/20211219_Monsen/processing/composite_images/rm12_13'
-# output_dir = '/Volumes/detectors_vol1/Pilatus1M/2021_Run3/20211219_Monsen/processing/composite_images/rm15'
-# output_dir = '/Volumes/detectors_vol1/Pilatus1M/2021_Run3/20211219_Monsen/processing/composite_images/rm16'
-# output_dir = '/Volumes/detectors_vol1/Pilatus1M/2021_Run3/20211219_Monsen/processing/composite_images/rm17_20'
-# output_dir = '/Volumes/detectors_vol1/Pilatus1M/2021_Run3/20211219_Monsen/processing/composite_images/rm21'
-# output_dir = '/Volumes/detectors_vol1/Pilatus1M/2021_Run3/20211219_Monsen/processing/composite_images/rm22'
+# output_dir = '/nas_data/Pilatus1M/2021_Run3/20211219_Monsen/processing/composite_images/rm01_05'
+# output_dir = '/nas_data/Pilatus1M/2021_Run3/20211219_Monsen/processing/composite_images/rm06'
+# output_dir = '/nas_data/Pilatus1M/2021_Run3/20211219_Monsen/processing/composite_images/rm08_10'
+#output_dir = '/nas_data/Pilatus1M/2021_Run3/20211219_Monsen/processing/composite_images/rm12_13'
+# output_dir = '/nas_data/Pilatus1M/2021_Run3/20211219_Monsen/processing/composite_images/rm15'
+# output_dir = '/nas_data/Pilatus1M/2021_Run3/20211219_Monsen/processing/composite_images/rm16'
+# output_dir = '/nas_data/Pilatus1M/2021_Run3/20211219_Monsen/processing/composite_images/rm17_20'
+# output_dir = '/nas_data/Pilatus1M/2021_Run3/20211219_Monsen/processing/composite_images/rm21'
+# output_dir = '/nas_data/Pilatus1M/2021_Run3/20211219_Monsen/processing/composite_images/rm22'
+output_dir = '/nas_data/Eiger2xe9M/2022_Run1/20220420_Hopkins/processing/composite_images/water01_03'
 
 if not os.path.exists(output_dir):
     os.makedirs(output_dir)
@@ -126,7 +134,9 @@ for j, img in enumerate(img_list):
     im.save(os.path.join(output_dir, '{}_composite_{:04d}.tif'.format(os.path.split(top_dir)[-1], fnum_list[j])))
     # im.save(os.path.join(output_dir, '{}_composite_{:04d}.tif'.format('cc_1217', fnum_list[j])))
 
-
+tot_im = np.sum(np.array(img_list), axis=0)
+tot_im = Image.fromarray(tot_im.astype(np.int32))
+tot_im.save(os.path.join(output_dir, '{}_composite_total.tif'.format(os.path.split(top_dir)[-1])))
 
 # # Laminar flow
 
