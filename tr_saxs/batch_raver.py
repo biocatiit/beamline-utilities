@@ -1,7 +1,31 @@
 import os
-os.sys.path.append(os.path.abspath('../pyfai_integration/'))
+import time
+# os.sys.path.append(os.path.abspath('../pyfai_integration/'))
 
-import saxs_raver
+import bioxtasraw.RAWAPI as raw
+
+def getNewFiles(target_dir, old_dir_list_dict, fprefix, extra_name, img_ext):
+    # print 'Getting New Files'
+    dir_list = os.listdir(target_dir)
+
+    dir_list_dict = {}
+
+    for each_file in dir_list:
+        if os.path.splitext(each_file)[1].lstrip('.') == img_ext and extra_name in os.path.split(each_file)[1]:
+            if fprefix is None or each_file.startswith(fprefix):
+                try:
+                    full_path = os.path.join(target_dir, each_file)
+                    dir_list_dict[each_file] = (os.path.getmtime(full_path),
+                        os.path.getsize(full_path))
+                except OSError:
+                    pass
+
+    diff_list = list(set(dir_list_dict.items()) - set(old_dir_list_dict.items()))
+    diff_list.sort(key = lambda name: name[0])
+
+    old_dir_list_dict.update(diff_list)
+
+    return diff_list, old_dir_list_dict
 
 # cfg_file = '/nas_data/Pilatus1M/2018_Run3/20181130Bilsel/processing/mask_minq_0p016.cfg'
 
@@ -437,182 +461,446 @@ import saxs_raver
 #     # ],
 # ]
 
-#December 2019
-cfg_file = '/nas_data/Pilatus1M/2019_Run3/20191205Hopkins/cf_SAXS.cfg'
+# #December 2019
+# cfg_file = '/nas_data/Pilatus1M/2019_Run3/20191205Hopkins/cf_SAXS.cfg'
+
+# # batch list should be a list of lists. Each entry should be as:
+# # [source_dir, fprefix, output_dir]
+# # Note that if fprefix is None, all files in the directory will be processed
+
+# batch_list = [
+#     # ['/nas_data/Pilatus1M/2019_Run3/20191205Hopkins/cytc/cytc_01/',
+#     # 'cytc_01',
+#     # '/nas_data/Pilatus1M/2019_Run3/20191205Hopkins/dats/cytc/cytc_01'
+#     # ],
+#     # ['/nas_data/Pilatus1M/2019_Run3/20191205Hopkins/cytc/cytc_02/',
+#     # 'cytc_02',
+#     # '/nas_data/Pilatus1M/2019_Run3/20191205Hopkins/dats/cytc/cytc_02'
+#     # ],
+#     # ['/nas_data/Pilatus1M/2019_Run3/20191205Hopkins/cytc/buf_01/',
+#     # 'buf_01',
+#     # '/nas_data/Pilatus1M/2019_Run3/20191205Hopkins/dats/cytc/buf_01'
+#     # ],
+#     # ['/nas_data/Pilatus1M/2019_Run3/20191205Hopkins/cytc/buf_02/',
+#     # 'buf_02',
+#     # '/nas_data/Pilatus1M/2019_Run3/20191205Hopkins/dats/cytc/buf_02'
+#     # ],
+#     # ['/nas_data/Pilatus1M/2019_Run3/20191205Hopkins/cytc/buf_03/',
+#     # 'buf_03',
+#     # '/nas_data/Pilatus1M/2019_Run3/20191205Hopkins/dats/cytc/buf_03'
+#     # ],
+#     # ['/nas_data/Pilatus1M/2019_Run3/20191205Hopkins/cytc/cytc_03/',
+#     # 'cytc_03',
+#     # '/nas_data/Pilatus1M/2019_Run3/20191205Hopkins/dats/cytc/cytc_03'
+#     # ],
+#     # ['/nas_data/Pilatus1M/2019_Run3/20191205Hopkins/cytc/buf_04/',
+#     # 'buf_04',
+#     # '/nas_data/Pilatus1M/2019_Run3/20191205Hopkins/dats/cytc/buf_04'
+#     # ],
+#     # ['/nas_data/Pilatus1M/2019_Run3/20191205Hopkins/cytc/cytc_04/',
+#     # 'cytc_04',
+#     # '/nas_data/Pilatus1M/2019_Run3/20191205Hopkins/dats/cytc/cytc_04'
+#     # ],
+#     # ['/nas_data/Pilatus1M/2019_Run3/20191205Hopkins/cytc/buf_05/',
+#     # 'buf_05',
+#     # '/nas_data/Pilatus1M/2019_Run3/20191205Hopkins/dats/cytc/buf_05'
+#     # ],
+#     # ['/nas_data/Pilatus1M/2019_Run3/20191205Hopkins/cytc/cytc_05/',
+#     # 'cytc_05',
+#     # '/nas_data/Pilatus1M/2019_Run3/20191205Hopkins/dats/cytc/cytc_05'
+#     # ],
+#     # ['/nas_data/Pilatus1M/2019_Run3/20191205Hopkins/cytc/buf_06/',
+#     # 'buf_06',
+#     # '/nas_data/Pilatus1M/2019_Run3/20191205Hopkins/dats/cytc/buf_06'
+#     # ],
+#     # ['/nas_data/Pilatus1M/2019_Run3/20191205Hopkins/cytc/buf_07/',
+#     # 'buf_07',
+#     # '/nas_data/Pilatus1M/2019_Run3/20191205Hopkins/dats/cytc/buf_07'
+#     # ],
+#     # ['/nas_data/Pilatus1M/2019_Run3/20191205Hopkins/cytc/cytc_06/',
+#     # 'cytc_06',
+#     # '/nas_data/Pilatus1M/2019_Run3/20191205Hopkins/dats/cytc/cytc_06'
+#     # ],
+#     # ['/nas_data/Pilatus1M/2019_Run3/20191205Hopkins/cytc_2/buf2_01/',
+#     # 'buf2_01',
+#     # '/nas_data/Pilatus1M/2019_Run3/20191205Hopkins/dats/cytc2/buf2_01'
+#     # ],
+#     # ['/nas_data/Pilatus1M/2019_Run3/20191205Hopkins/cytc_2/cytc2_01/',
+#     # 'cytc2_01',
+#     # '/nas_data/Pilatus1M/2019_Run3/20191205Hopkins/dats/cytc2/cytc2_01'
+#     # ],
+#     # ['/nas_data/Pilatus1M/2019_Run3/20191205Hopkins/cytc_2/buf2_02/',
+#     # 'buf2_02',
+#     # '/nas_data/Pilatus1M/2019_Run3/20191205Hopkins/dats/cytc2/buf2_02'
+#     # ],
+#     # ['/nas_data/Pilatus1M/2019_Run3/20191205Hopkins/cytc_2/cytc2_02/',
+#     # 'cytc2_02',
+#     # '/nas_data/Pilatus1M/2019_Run3/20191205Hopkins/dats/cytc2/cytc2_02'
+#     # ],
+#     # ['/nas_data/Pilatus1M/2019_Run3/20191205Hopkins/cytc_2/buf2_03/',
+#     # 'buf2_03',
+#     # '/nas_data/Pilatus1M/2019_Run3/20191205Hopkins/dats/cytc2/buf2_03'
+#     # ],
+#     # ['/nas_data/Pilatus1M/2019_Run3/20191205Hopkins/pinto_chaotic/buf_01/',
+#     # 'buf_01',
+#     # '/nas_data/Pilatus1M/2019_Run3/20191205Hopkins/dats/pinto_cf/buf_01'
+#     # ],
+#     # ['/nas_data/Pilatus1M/2019_Run3/20191205Hopkins/pinto_chaotic/twt_01/',
+#     # 'twt_01',
+#     # '/nas_data/Pilatus1M/2019_Run3/20191205Hopkins/dats/pinto_cf/twt_01'
+#     # ],
+#     # ['/nas_data/Pilatus1M/2019_Run3/20191205Hopkins/pinto_chaotic/buf_02/',
+#     # 'buf_02',
+#     # '/nas_data/Pilatus1M/2019_Run3/20191205Hopkins/dats/pinto_cf/buf_02'
+#     # ],
+#     # ['/nas_data/Pilatus1M/2019_Run3/20191205Hopkins/pinto_chaotic/twt_02/',
+#     # 'twt_02',
+#     # '/nas_data/Pilatus1M/2019_Run3/20191205Hopkins/dats/pinto_cf/twt_02'
+#     # ],
+#     # ['/nas_data/Pilatus1M/2019_Run3/20191205Hopkins/pinto_chaotic/buf_03/',
+#     # 'buf_03',
+#     # '/nas_data/Pilatus1M/2019_Run3/20191205Hopkins/dats/pinto_cf/buf_03'
+#     # ],
+#     # ['/nas_data/Pilatus1M/2019_Run3/20191205Hopkins/pinto_chaotic/twt_03/',
+#     # 'twt_03',
+#     # '/nas_data/Pilatus1M/2019_Run3/20191205Hopkins/dats/pinto_cf/twt_03'
+#     # ],
+#     # ['/nas_data/Pilatus1M/2019_Run3/20191205Hopkins/pinto_chaotic/buf_04/',
+#     # 'buf_04',
+#     # '/nas_data/Pilatus1M/2019_Run3/20191205Hopkins/dats/pinto_cf/buf_04'
+#     # ],
+#     # ['/nas_data/Pilatus1M/2019_Run3/20191205Hopkins/pinto_chaotic/twt_04/',
+#     # 'twt_04',
+#     # '/nas_data/Pilatus1M/2019_Run3/20191205Hopkins/dats/pinto_cf/twt_04'
+#     # ],
+#     # ['/nas_data/Pilatus1M/2019_Run3/20191205Hopkins/pinto_chaotic/buf_05/',
+#     # 'buf_05',
+#     # '/nas_data/Pilatus1M/2019_Run3/20191205Hopkins/dats/pinto_cf/buf_05'
+#     # ],
+#     # ['/nas_data/Pilatus1M/2019_Run3/20191205Hopkins/martin_chaotic/buf_01/',
+#     # 'buf_01',
+#     # '/nas_data/Pilatus1M/2019_Run3/20191205Hopkins/dats/martin_cf/buf_01'
+#     # ],
+#     # ['/nas_data/Pilatus1M/2019_Run3/20191205Hopkins/martin_chaotic/em_01/',
+#     # 'em_01',
+#     # '/nas_data/Pilatus1M/2019_Run3/20191205Hopkins/dats/martin_cf/em_01'
+#     # ],
+#     # ['/nas_data/Pilatus1M/2019_Run3/20191205Hopkins/martin_chaotic/buf_02/',
+#     # 'buf_02',
+#     # '/nas_data/Pilatus1M/2019_Run3/20191205Hopkins/dats/martin_cf/buf_02'
+#     # ],
+#     # ['/nas_data/Pilatus1M/2019_Run3/20191205Hopkins/martin_chaotic/em_02/',
+#     # 'em_02',
+#     # '/nas_data/Pilatus1M/2019_Run3/20191205Hopkins/dats/martin_cf/em_02'
+#     # ],
+#     # ['/nas_data/Pilatus1M/2019_Run3/20191205Hopkins/martin_chaotic/buf_03/',
+#     # 'buf_03',
+#     # '/nas_data/Pilatus1M/2019_Run3/20191205Hopkins/dats/martin_cf/buf_03'
+#     # ],
+#     # ['/nas_data/Pilatus1M/2019_Run3/20191205Hopkins/martin_chaotic/em_03/',
+#     # 'em_03',
+#     # '/nas_data/Pilatus1M/2019_Run3/20191205Hopkins/dats/martin_cf/em_03'
+#     # ],
+#     # ['/nas_data/Pilatus1M/2019_Run3/20191205Hopkins/martin_chaotic/buf_04/',
+#     # 'buf_04',
+#     # '/nas_data/Pilatus1M/2019_Run3/20191205Hopkins/dats/martin_cf/buf_04'
+#     # ],
+#     # ['/nas_data/Pilatus1M/2019_Run3/20191205Hopkins/martin_chaotic/em_04/',
+#     # 'em_04',
+#     # '/nas_data/Pilatus1M/2019_Run3/20191205Hopkins/dats/martin_cf/em_04'
+#     # ],
+#     ['/nas_data/Pilatus1M/2019_Run3/20191205Hopkins/martin_chaotic/buf_05/',
+#     'buf_05',
+#     '/nas_data/Pilatus1M/2019_Run3/20191205Hopkins/dats/martin_cf/buf_05'
+#     ],
+# ]
+
+#April 2023
+# cfg_file = '/nas_data/Eiger2x/2023_Run1/20230408_Hopkins/20230408_laminar_SAXS.cfg'
+
+# # batch list should be a list of lists. Each entry should be as:
+# # [source_dir, fprefix, output_dir]
+# # Note that if fprefix is None, all files in the directory will be processed
+
+# batch_list = [
+#     # ['/nas_data/Eiger2x/2023_Run1/20230409_Gupta/KG03/images',
+#     # 'KG03',
+#     # '/nas_data/SAXS/2023_Run1/20230409_Gupta/KG03/profiles'
+#     # ],
+#     # ['/nas_data/Eiger2x/2023_Run1/20230409_Gupta/KG04/images',
+#     # 'KG04',
+#     # '/nas_data/SAXS/2023_Run1/20230409_Gupta/KG04/profiles'
+#     # ],
+#     # ['/nas_data/Eiger2x/2023_Run1/20230409_Gupta/KG05/images',
+#     # 'KG05',
+#     # '/nas_data/SAXS/2023_Run1/20230409_Gupta/KG05/profiles'
+#     # ],
+#     # ['/nas_data/Eiger2x/2023_Run1/20230409_Gupta/KG06/images',
+#     # 'KG06',
+#     # '/nas_data/SAXS/2023_Run1/20230409_Gupta/KG06/profiles'
+#     # ],
+#     # ['/nas_data/Eiger2x/2023_Run1/20230409_Gupta/KG07/images',
+#     # 'KG07',
+#     # '/nas_data/SAXS/2023_Run1/20230409_Gupta/KG07/profiles'
+#     # ],
+#     # ['/nas_data/Eiger2x/2023_Run1/20230409_Gupta/KG08/images',
+#     # 'KG08',
+#     # '/nas_data/SAXS/2023_Run1/20230409_Gupta/KG08/profiles'
+#     # ],
+#     # ['/nas_data/Eiger2x/2023_Run1/20230409_Gupta/KG09/images',
+#     # 'KG09',
+#     # '/nas_data/SAXS/2023_Run1/20230409_Gupta/KG09/profiles'
+#     # ],
+#     # ['/nas_data/Eiger2x/2023_Run1/20230409_Gupta/KG10/images',
+#     # 'KG10',
+#     # '/nas_data/SAXS/2023_Run1/20230409_Gupta/KG10/profiles'
+#     # ],
+#     # ['/nas_data/Eiger2x/2023_Run1/20230409_Gupta/KG11/images',
+#     # 'KG11',
+#     # '/nas_data/SAXS/2023_Run1/20230409_Gupta/KG11/profiles'
+#     # ],
+#     # ['/nas_data/Eiger2x/2023_Run1/20230409_Gupta/KG12/images',
+#     # 'KG12',
+#     # '/nas_data/SAXS/2023_Run1/20230409_Gupta/KG12/profiles'
+#     # ],
+#     # ['/nas_data/Eiger2x/2023_Run1/20230408_Hopkins/JH06/images',
+#     # 'JH06',
+#     # '/nas_data/SAXS/2023_Run1/20230408_Hopkins/JH06/profiles'
+#     # ],
+#     # ['/nas_data/Eiger2x/2023_Run1/20230408_Hopkins/JH07/images',
+#     # 'JH07',
+#     # '/nas_data/SAXS/2023_Run1/20230408_Hopkins/JH07/profiles'
+#     # ],
+#     # ['/nas_data/Eiger2x/2023_Run1/20230408_Hopkins/JH08/images',
+#     # 'JH08',
+#     # '/nas_data/SAXS/2023_Run1/20230408_Hopkins/JH08/profiles'
+#     # ],
+#     # ['/nas_data/Eiger2x/2023_Run1/20230408_Hopkins/JH09/images',
+#     # 'JH09',
+#     # '/nas_data/SAXS/2023_Run1/20230408_Hopkins/JH09/profiles'
+#     # ],
+#     # ['/nas_data/Eiger2x/2023_Run1/20230408_Hopkins/JH10/images',
+#     # 'JH10',
+#     # '/nas_data/SAXS/2023_Run1/20230408_Hopkins/JH10/profiles'
+#     # ],
+#     # ['/nas_data/Eiger2x/2023_Run1/20230412_Ho/MH01/images',
+#     # 'MH01',
+#     # '/nas_data/SAXS/2023_Run1/20230412_Ho/MH01/profiles'
+#     # ],
+#     # ['/nas_data/Eiger2x/2023_Run1/20230412_Ho/MH02/images',
+#     # 'MH02',
+#     # '/nas_data/SAXS/2023_Run1/20230412_Ho/MH02/profiles'
+#     # ],
+#     # ['/nas_data/Eiger2x/2023_Run1/20230412_Ho/MH03/images',
+#     # 'MH03',
+#     # '/nas_data/SAXS/2023_Run1/20230412_Ho/MH03/profiles'
+#     # ],
+#     # ['/nas_data/Eiger2x/2023_Run1/20230412_Ho/MH04/images',
+#     # 'MH04',
+#     # '/nas_data/SAXS/2023_Run1/20230412_Ho/MH04/profiles'
+#     # ],
+#     # ['/nas_data/Eiger2x/2023_Run1/20230412_Ho/MH05/images',
+#     # 'MH05',
+#     # '/nas_data/SAXS/2023_Run1/20230412_Ho/MH05/profiles'
+#     # ],
+#     # ['/nas_data/Eiger2x/2023_Run1/20230412_Ho/MH06/images',
+#     # 'MH06',
+#     # '/nas_data/SAXS/2023_Run1/20230412_Ho/MH06/profiles'
+#     # ],
+#     # ['/nas_data/Eiger2x/2023_Run1/20230412_Ho/MH07/images',
+#     # 'MH07',
+#     # '/nas_data/SAXS/2023_Run1/20230412_Ho/MH07/profiles'
+#     # ],
+#     # ['/nas_data/Eiger2x/2023_Run1/20230412_Ho/MH08/images',
+#     # 'MH08',
+#     # '/nas_data/SAXS/2023_Run1/20230412_Ho/MH08/profiles'
+#     # ],
+#     # ['/nas_data/Eiger2x/2023_Run1/20230412_Ho/MH09/images',
+#     # 'MH09',
+#     # '/nas_data/SAXS/2023_Run1/20230412_Ho/MH09/profiles'
+#     # ],
+#     # ['/nas_data/Eiger2x/2023_Run1/20230412_Ho/MH10/images',
+#     # 'MH10',
+#     # '/nas_data/SAXS/2023_Run1/20230412_Ho/MH10/profiles'
+#     # ],
+#     # ['/nas_data/Eiger2x/2023_Run1/20230412_Ho/MH11/images',
+#     # 'MH11',
+#     # '/nas_data/SAXS/2023_Run1/20230412_Ho/MH11/profiles'
+#     # ],
+#     # ['/nas_data/Eiger2x/2023_Run1/20230412_Ho/MH12/images',
+#     # 'MH12',
+#     # '/nas_data/SAXS/2023_Run1/20230412_Ho/MH12/profiles'
+#     # ],
+#     # ['/nas_data/Eiger2x/2023_Run1/20230412_Ho/MH13/images',
+#     # 'MH13',
+#     # '/nas_data/SAXS/2023_Run1/20230412_Ho/MH13/profiles'
+#     # ],
+#     # ['/nas_data/Eiger2x/2023_Run1/20230412_Ho/MH14/images',
+#     # 'MH14',
+#     # '/nas_data/SAXS/2023_Run1/20230412_Ho/MH14/profiles'
+#     # ],
+#     # ['/nas_data/Eiger2x/2023_Run1/20230412_Ho/MH15/images',
+#     # 'MH15',
+#     # '/nas_data/SAXS/2023_Run1/20230412_Ho/MH15/profiles'
+#     # ],
+#     # ['/nas_data/Eiger2x/2023_Run1/20230412_Ho/MH16/images',
+#     # 'MH16',
+#     # '/nas_data/SAXS/2023_Run1/20230412_Ho/MH16/profiles'
+#     # ],
+#     # ['/nas_data/Eiger2x/2023_Run1/20230412_Ho/MH17/images',
+#     # 'MH17',
+#     # '/nas_data/SAXS/2023_Run1/20230412_Ho/MH17/profiles'
+#     # ],
+#     # ['/nas_data/Eiger2x/2023_Run1/20230412_Ho/MH18/images',
+#     # 'MH18',
+#     # '/nas_data/SAXS/2023_Run1/20230412_Ho/MH18/profiles'
+#     # ],
+#     # ['/nas_data/Eiger2x/2023_Run1/20230412_Ho/MH19/images',
+#     # 'MH19',
+#     # '/nas_data/SAXS/2023_Run1/20230412_Ho/MH19/profiles'
+#     # ],
+#     # ['/nas_data/Eiger2x/2023_Run1/20230412_Ho/MH20/images',
+#     # 'MH20',
+#     # '/nas_data/SAXS/2023_Run1/20230412_Ho/MH20/profiles'
+#     # ],
+#     # ['/nas_data/Eiger2x/2023_Run1/20230415_Juarez/OJ02/images',
+#     # 'OJ02',
+#     # '/nas_data/SAXS/2023_Run1/20230415_Juarez/OJ02/profiles'
+#     # ],
+#     # ['/nas_data/Eiger2x/2023_Run1/20230415_Juarez/OJ03/images',
+#     # 'OJ03',
+#     # '/nas_data/SAXS/2023_Run1/20230415_Juarez/OJ03/profiles'
+#     # ],
+#     # ['/nas_data/Eiger2x/2023_Run1/20230415_Juarez/OJ04/images',
+#     # 'OJ04',
+#     # '/nas_data/SAXS/2023_Run1/20230415_Juarez/OJ04/profiles'
+#     # ],
+#     # ['/nas_data/Eiger2x/2023_Run1/20230415_Juarez/OJ06/images',
+#     # 'OJ06',
+#     # '/nas_data/SAXS/2023_Run1/20230415_Juarez/OJ06/profiles'
+#     # ],
+#     # ['/nas_data/Eiger2x/2023_Run1/20230415_Juarez/OJ07/images',
+#     # 'OJ07',
+#     # '/nas_data/SAXS/2023_Run1/20230415_Juarez/OJ07/profiles'
+#     # ],
+#     # ['/nas_data/Eiger2x/2023_Run1/20230415_Juarez/OJ08/images',
+#     # 'OJ08',
+#     # '/nas_data/SAXS/2023_Run1/20230415_Juarez/OJ08/profiles'
+#     # ],
+#     # ['/nas_data/Eiger2x/2023_Run1/20230415_Juarez/OJ09/images',
+#     # 'OJ09',
+#     # '/nas_data/SAXS/2023_Run1/20230415_Juarez/OJ09/profiles'
+#     # ],
+#     # ['/nas_data/Eiger2x/2023_Run1/20230415_Juarez/OJ10/images',
+#     # 'OJ10',
+#     # '/nas_data/SAXS/2023_Run1/20230415_Juarez/OJ10/profiles'
+#     # ],
+#     # ['/nas_data/Eiger2x/2023_Run1/20230415_Juarez/OJ11/images',
+#     # 'OJ11',
+#     # '/nas_data/SAXS/2023_Run1/20230415_Juarez/OJ11/profiles'
+#     # ],
+#     # ['/nas_data/Eiger2x/2023_Run1/20230414_Hopkins/JH06/images',
+#     # 'JH06',
+#     # '/nas_data/SAXS/2023_Run1/20230414_Hopkins/JH06/profiles'
+#     # ],
+#     # ['/nas_data/Eiger2x/2023_Run1/20230414_Hopkins/JH07/images',
+#     # 'JH07',
+#     # '/nas_data/SAXS/2023_Run1/20230414_Hopkins/JH07/profiles'
+#     # ],
+#     # ['/nas_data/Eiger2x/2023_Run1/20230414_Hopkins/JH08/images',
+#     # 'JH08',
+#     # '/nas_data/SAXS/2023_Run1/20230414_Hopkins/JH08/profiles'
+#     # ],
+#     # ['/nas_data/Eiger2x/2023_Run1/20230414_Hopkins/JH09/images',
+#     # 'JH09',
+#     # '/nas_data/SAXS/2023_Run1/20230414_Hopkins/JH09/profiles'
+#     # ],
+#     # ['/nas_data/Eiger2x/2023_Run1/20230414_Hopkins/JH10/images',
+#     # 'JH10',
+#     # '/nas_data/SAXS/2023_Run1/20230414_Hopkins/JH10/profiles'
+#     # ],
+#     # ['/nas_data/Eiger2x/2023_Run1/20230414_Hopkins/JH11/images',
+#     # 'JH11',
+#     # '/nas_data/SAXS/2023_Run1/20230414_Hopkins/JH11/profiles'
+#     # ],
+#     # ['/nas_data/Eiger2x/2023_Run1/20230414_Hopkins/JH12/images',
+#     # 'JH12',
+#     # '/nas_data/SAXS/2023_Run1/20230414_Hopkins/JH12/profiles'
+#     # ],
+#     # ['/nas_data/Eiger2x/2023_Run1/20230414_Hopkins/JH13/images',
+#     # 'JH13',
+#     # '/nas_data/SAXS/2023_Run1/20230414_Hopkins/JH13/profiles'
+#     # ],
+#     # ['/nas_data/Eiger2x/2023_Run1/20230414_Hopkins/JH14/images',
+#     # 'JH14',
+#     # '/nas_data/SAXS/2023_Run1/20230414_Hopkins/JH14/profiles'
+#     # ],
+# ]
+
+cfg_file = '/nas_data/Eiger2x/2023_Run1/20230405_Pollack/processing/masks/day1/LP_basic.cfg'
 
 # batch list should be a list of lists. Each entry should be as:
 # [source_dir, fprefix, output_dir]
 # Note that if fprefix is None, all files in the directory will be processed
 
 batch_list = [
-    # ['/nas_data/Pilatus1M/2019_Run3/20191205Hopkins/cytc/cytc_01/',
-    # 'cytc_01',
-    # '/nas_data/Pilatus1M/2019_Run3/20191205Hopkins/dats/cytc/cytc_01'
-    # ],
-    # ['/nas_data/Pilatus1M/2019_Run3/20191205Hopkins/cytc/cytc_02/',
-    # 'cytc_02',
-    # '/nas_data/Pilatus1M/2019_Run3/20191205Hopkins/dats/cytc/cytc_02'
-    # ],
-    # ['/nas_data/Pilatus1M/2019_Run3/20191205Hopkins/cytc/buf_01/',
-    # 'buf_01',
-    # '/nas_data/Pilatus1M/2019_Run3/20191205Hopkins/dats/cytc/buf_01'
-    # ],
-    # ['/nas_data/Pilatus1M/2019_Run3/20191205Hopkins/cytc/buf_02/',
-    # 'buf_02',
-    # '/nas_data/Pilatus1M/2019_Run3/20191205Hopkins/dats/cytc/buf_02'
-    # ],
-    # ['/nas_data/Pilatus1M/2019_Run3/20191205Hopkins/cytc/buf_03/',
-    # 'buf_03',
-    # '/nas_data/Pilatus1M/2019_Run3/20191205Hopkins/dats/cytc/buf_03'
-    # ],
-    # ['/nas_data/Pilatus1M/2019_Run3/20191205Hopkins/cytc/cytc_03/',
-    # 'cytc_03',
-    # '/nas_data/Pilatus1M/2019_Run3/20191205Hopkins/dats/cytc/cytc_03'
-    # ],
-    # ['/nas_data/Pilatus1M/2019_Run3/20191205Hopkins/cytc/buf_04/',
-    # 'buf_04',
-    # '/nas_data/Pilatus1M/2019_Run3/20191205Hopkins/dats/cytc/buf_04'
-    # ],
-    # ['/nas_data/Pilatus1M/2019_Run3/20191205Hopkins/cytc/cytc_04/',
-    # 'cytc_04',
-    # '/nas_data/Pilatus1M/2019_Run3/20191205Hopkins/dats/cytc/cytc_04'
-    # ],
-    # ['/nas_data/Pilatus1M/2019_Run3/20191205Hopkins/cytc/buf_05/',
-    # 'buf_05',
-    # '/nas_data/Pilatus1M/2019_Run3/20191205Hopkins/dats/cytc/buf_05'
-    # ],
-    # ['/nas_data/Pilatus1M/2019_Run3/20191205Hopkins/cytc/cytc_05/',
-    # 'cytc_05',
-    # '/nas_data/Pilatus1M/2019_Run3/20191205Hopkins/dats/cytc/cytc_05'
-    # ],
-    # ['/nas_data/Pilatus1M/2019_Run3/20191205Hopkins/cytc/buf_06/',
-    # 'buf_06',
-    # '/nas_data/Pilatus1M/2019_Run3/20191205Hopkins/dats/cytc/buf_06'
-    # ],
-    # ['/nas_data/Pilatus1M/2019_Run3/20191205Hopkins/cytc/buf_07/',
-    # 'buf_07',
-    # '/nas_data/Pilatus1M/2019_Run3/20191205Hopkins/dats/cytc/buf_07'
-    # ],
-    # ['/nas_data/Pilatus1M/2019_Run3/20191205Hopkins/cytc/cytc_06/',
-    # 'cytc_06',
-    # '/nas_data/Pilatus1M/2019_Run3/20191205Hopkins/dats/cytc/cytc_06'
-    # ],
-    # ['/nas_data/Pilatus1M/2019_Run3/20191205Hopkins/cytc_2/buf2_01/',
-    # 'buf2_01',
-    # '/nas_data/Pilatus1M/2019_Run3/20191205Hopkins/dats/cytc2/buf2_01'
-    # ],
-    # ['/nas_data/Pilatus1M/2019_Run3/20191205Hopkins/cytc_2/cytc2_01/',
-    # 'cytc2_01',
-    # '/nas_data/Pilatus1M/2019_Run3/20191205Hopkins/dats/cytc2/cytc2_01'
-    # ],
-    # ['/nas_data/Pilatus1M/2019_Run3/20191205Hopkins/cytc_2/buf2_02/',
-    # 'buf2_02',
-    # '/nas_data/Pilatus1M/2019_Run3/20191205Hopkins/dats/cytc2/buf2_02'
-    # ],
-    # ['/nas_data/Pilatus1M/2019_Run3/20191205Hopkins/cytc_2/cytc2_02/',
-    # 'cytc2_02',
-    # '/nas_data/Pilatus1M/2019_Run3/20191205Hopkins/dats/cytc2/cytc2_02'
-    # ],
-    # ['/nas_data/Pilatus1M/2019_Run3/20191205Hopkins/cytc_2/buf2_03/',
-    # 'buf2_03',
-    # '/nas_data/Pilatus1M/2019_Run3/20191205Hopkins/dats/cytc2/buf2_03'
-    # ],
-    # ['/nas_data/Pilatus1M/2019_Run3/20191205Hopkins/pinto_chaotic/buf_01/',
-    # 'buf_01',
-    # '/nas_data/Pilatus1M/2019_Run3/20191205Hopkins/dats/pinto_cf/buf_01'
-    # ],
-    # ['/nas_data/Pilatus1M/2019_Run3/20191205Hopkins/pinto_chaotic/twt_01/',
-    # 'twt_01',
-    # '/nas_data/Pilatus1M/2019_Run3/20191205Hopkins/dats/pinto_cf/twt_01'
-    # ],
-    # ['/nas_data/Pilatus1M/2019_Run3/20191205Hopkins/pinto_chaotic/buf_02/',
-    # 'buf_02',
-    # '/nas_data/Pilatus1M/2019_Run3/20191205Hopkins/dats/pinto_cf/buf_02'
-    # ],
-    # ['/nas_data/Pilatus1M/2019_Run3/20191205Hopkins/pinto_chaotic/twt_02/',
-    # 'twt_02',
-    # '/nas_data/Pilatus1M/2019_Run3/20191205Hopkins/dats/pinto_cf/twt_02'
-    # ],
-    # ['/nas_data/Pilatus1M/2019_Run3/20191205Hopkins/pinto_chaotic/buf_03/',
-    # 'buf_03',
-    # '/nas_data/Pilatus1M/2019_Run3/20191205Hopkins/dats/pinto_cf/buf_03'
-    # ],
-    # ['/nas_data/Pilatus1M/2019_Run3/20191205Hopkins/pinto_chaotic/twt_03/',
-    # 'twt_03',
-    # '/nas_data/Pilatus1M/2019_Run3/20191205Hopkins/dats/pinto_cf/twt_03'
-    # ],
-    # ['/nas_data/Pilatus1M/2019_Run3/20191205Hopkins/pinto_chaotic/buf_04/',
-    # 'buf_04',
-    # '/nas_data/Pilatus1M/2019_Run3/20191205Hopkins/dats/pinto_cf/buf_04'
-    # ],
-    # ['/nas_data/Pilatus1M/2019_Run3/20191205Hopkins/pinto_chaotic/twt_04/',
-    # 'twt_04',
-    # '/nas_data/Pilatus1M/2019_Run3/20191205Hopkins/dats/pinto_cf/twt_04'
-    # ],
-    # ['/nas_data/Pilatus1M/2019_Run3/20191205Hopkins/pinto_chaotic/buf_05/',
-    # 'buf_05',
-    # '/nas_data/Pilatus1M/2019_Run3/20191205Hopkins/dats/pinto_cf/buf_05'
-    # ],
-    # ['/nas_data/Pilatus1M/2019_Run3/20191205Hopkins/martin_chaotic/buf_01/',
-    # 'buf_01',
-    # '/nas_data/Pilatus1M/2019_Run3/20191205Hopkins/dats/martin_cf/buf_01'
-    # ],
-    # ['/nas_data/Pilatus1M/2019_Run3/20191205Hopkins/martin_chaotic/em_01/',
-    # 'em_01',
-    # '/nas_data/Pilatus1M/2019_Run3/20191205Hopkins/dats/martin_cf/em_01'
-    # ],
-    # ['/nas_data/Pilatus1M/2019_Run3/20191205Hopkins/martin_chaotic/buf_02/',
-    # 'buf_02',
-    # '/nas_data/Pilatus1M/2019_Run3/20191205Hopkins/dats/martin_cf/buf_02'
-    # ],
-    # ['/nas_data/Pilatus1M/2019_Run3/20191205Hopkins/martin_chaotic/em_02/',
-    # 'em_02',
-    # '/nas_data/Pilatus1M/2019_Run3/20191205Hopkins/dats/martin_cf/em_02'
-    # ],
-    # ['/nas_data/Pilatus1M/2019_Run3/20191205Hopkins/martin_chaotic/buf_03/',
-    # 'buf_03',
-    # '/nas_data/Pilatus1M/2019_Run3/20191205Hopkins/dats/martin_cf/buf_03'
-    # ],
-    # ['/nas_data/Pilatus1M/2019_Run3/20191205Hopkins/martin_chaotic/em_03/',
-    # 'em_03',
-    # '/nas_data/Pilatus1M/2019_Run3/20191205Hopkins/dats/martin_cf/em_03'
-    # ],
-    # ['/nas_data/Pilatus1M/2019_Run3/20191205Hopkins/martin_chaotic/buf_04/',
-    # 'buf_04',
-    # '/nas_data/Pilatus1M/2019_Run3/20191205Hopkins/dats/martin_cf/buf_04'
-    # ],
-    # ['/nas_data/Pilatus1M/2019_Run3/20191205Hopkins/martin_chaotic/em_04/',
-    # 'em_04',
-    # '/nas_data/Pilatus1M/2019_Run3/20191205Hopkins/dats/martin_cf/em_04'
-    # ],
-    ['/nas_data/Pilatus1M/2019_Run3/20191205Hopkins/martin_chaotic/buf_05/',
-    'buf_05',
-    '/nas_data/Pilatus1M/2019_Run3/20191205Hopkins/dats/martin_cf/buf_05'
+    ['/nas_data/Eiger2x/2023_Run1/20230405_Pollack/LP01/images',
+    'LP01',
+    '/nas_data/SAXS/2023_Run1/20230405_Pollack/LP01/profiles'
     ],
-]
+    ]
 
-ai, mask, q_range, maxlen, normlist, do_normalization, raw_settings, calibrate_dict, fliplr, flipud = saxs_raver.init_integration(cfg_file)
+# ai, mask, q_range, maxlen, normlist, do_normalization, raw_settings, calibrate_dict, fliplr, flipud = saxs_raver.init_integration(cfg_file)
 
-start_point = raw_settings.get('StartPoint')
-end_point = raw_settings.get('EndPoint')
+# start_point = raw_settings.get('StartPoint')
+# end_point = raw_settings.get('EndPoint')
 
+
+# img_ext = 'tif'
+img_ext = 'h5'
+
+# zpad = 4
+zpad = 6
+
+# extra_name = ''
+extra_name = 'data'
+
+raw_settings = raw.load_settings(cfg_file)
+
+overwrite = False
 
 for source_dir, fprefix, output_dir in batch_list:
-    print fprefix
+    print(fprefix)
     try:
         old_dir_list_dict = {}
 
         if not os.path.exists(output_dir):
             os.makedirs(output_dir)
-        diff_list, old_dir_list_dict = saxs_raver.getNewFiles(source_dir, old_dir_list_dict, fprefix)
+        print('Getting file list')
+        diff_list, old_dir_list_dict = getNewFiles(source_dir, old_dir_list_dict, fprefix, extra_name, img_ext)
+
+        # for name, stuff in diff_list:
+        #     print(name)
+
+        #     saxs_raver.doIntegration(output_dir, ai, mask, q_range,
+        #         maxlen, normlist, do_normalization, calibrate_dict,
+        #         start_point, end_point, fliplr, flipud,
+        #         os.path.join(source_dir, name))
 
         for name, stuff in diff_list:
-            print name
 
-            saxs_raver.doIntegration(output_dir, ai, mask, q_range,
-                maxlen, normlist, do_normalization, calibrate_dict,
-                start_point, end_point, fliplr, flipud,
-                os.path.join(source_dir, name))
+            new_name = os.path.splitext(name)[0]
+            fnum = new_name.split('_')[-1]
+            new_name = '{}_{:05d}.{}'.format(new_name, int(fnum), 'dat')
+
+            if not os.path.exists(os.path.join(output_dir, new_name)):
+                print(name)
+                # a = time.time()
+                dats, _ = raw.load_and_integrate_images([os.path.join(source_dir,name)], raw_settings)
+                # print(time.time()-a)
+                data = dats[0]
+
+                raw.save_profile(data, settings=raw_settings, datadir=output_dir)
 
     except KeyboardInterrupt:
         break

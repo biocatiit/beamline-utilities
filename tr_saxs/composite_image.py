@@ -86,31 +86,31 @@ from PIL import Image
 # sub_dirs = ['RM21']
 # sub_dirs = ['RM22']
 
-# Dec. 2021 chaotic
-img_ext = 'h5'
-extra_name = 'data'
-zpad = 6
-top_dir = '/nas_data/Eiger2xe9M/2022_Run1/20220420_Hopkins/setup/water'
-sub_dirs = ['water01', 'water02', 'water03']
+# # April 2022 chaotic
+# img_ext = 'h5'
+# extra_name = 'data'
+# zpad = 6
+# # top_dir = '/nas_data/Eiger2xe9M/2022_Run1/20220420_Hopkins/setup/water'
+# # sub_dirs = ['water01', 'water02', 'water03']
 
+# # top_dir = '/nas_data/Eiger2xe9M/2022_Run1/20220420_Hopkins/lysozyme/refolding'
+# # sub_dirs = ['lys_01', 'lys_02', 'lys_03', 'lys_04', 'lys_05', 'lys_06', 'lys_07']
 
-fdir = os.path.join(top_dir, sub_dirs[0])
+# # top_dir = '/nas_data/Eiger2xe9M/2022_Run1/20220420_Hopkins/lysozyme/refolding'
+# # sub_dirs = ['lys_08', 'lys_09', 'lys_10']
 
-f_list = glob.glob(os.path.join(fdir, '{}_*_0001_{}*.{}'.format(sub_dirs[0], extra_name, img_ext)))
-fnum_list = list(set([int(fname.split('_')[-1].rstrip('{}'.format(img_ext)).rstrip('.')) for fname in f_list]))
-fnum_list.sort()
+# top_dir = '/nas_data/Eiger2xe9M/2022_Run1/20220420_Hopkins/CytC/native'
+# sub_dirs = ['native01', 'native02', 'native03']
 
-sample_image = fabio.open(f_list[0])
-img_list = [np.zeros_like(sample_image.data) for i in range(len(fnum_list))]
+# # top_dir = '/nas_data/Eiger2xe9M/2022_Run1/20220420_Hopkins/CytC/refolding'
+# # sub_dirs = ['cytc_01', 'cytc_02', 'cytc_03', 'cytc_04', 'cytc_06']
 
-for my_dir in sub_dirs:
-    print(my_dir)
-    for j, fnum in enumerate(fnum_list):
-        print(fnum)
-        imgs = glob.glob(os.path.join(top_dir, my_dir, '{}_*{}_{:0{}d}.{}'.format(my_dir, extra_name, fnum, zpad, img_ext)))
-        for img_name in imgs:
-            img = fabio.open(img_name)
-            img_list[j] = img_list[j] + img.data
+# # top_dir = '/nas_data/Eiger2xe9M/2022_Run1/20220423_Bilsel'
+# # sub_dirs = ['OB03', 'OB04']
+
+# # top_dir = '/nas_data/Eiger2xe9M/2022_Run1/20220423_Bilsel'
+# # sub_dirs = ['OB06', 'OB07', 'OB08', 'OB09',' OB10', 'OB11', 'OB12']
+
 
 # #Output params
 # # output_dir = '/nas_data/Pilatus1M/2019_Run2/20190807Srinivas/cf_processing/composite_images'
@@ -124,7 +124,87 @@ for my_dir in sub_dirs:
 # output_dir = '/nas_data/Pilatus1M/2021_Run3/20211219_Monsen/processing/composite_images/rm17_20'
 # output_dir = '/nas_data/Pilatus1M/2021_Run3/20211219_Monsen/processing/composite_images/rm21'
 # output_dir = '/nas_data/Pilatus1M/2021_Run3/20211219_Monsen/processing/composite_images/rm22'
-output_dir = '/nas_data/Eiger2xe9M/2022_Run1/20220420_Hopkins/processing/composite_images/water01_03'
+# output_dir = '/nas_data/Eiger2xe9M/2022_Run1/20220420_Hopkins/processing/composite_images/water01_03'
+# output_dir = '/nas_data/Eiger2xe9M/2022_Run1/20220420_Hopkins/processing/composite_images/lys/refolding_full'
+# output_dir = '/nas_data/Eiger2xe9M/2022_Run1/20220423_Bilsel/processing/composite_images'
+# output_dir = '/nas_data/Eiger2xe9M/2022_Run1/20220423_Bilsel/processing/composite_images/short'
+# output_dir = '/nas_data/Eiger2xe9M/2022_Run1/20220420_Hopkins/processing/composite_images/cytc/refolding'
+# output_dir = '/nas_data/Eiger2xe9M/2022_Run1/20220420_Hopkins/processing/composite_images/lys/refolding_short'
+# output_dir = '/nas_data/Eiger2xe9M/2022_Run1/20220420_Hopkins/processing/composite_images/cytc/native'
+
+
+
+# April 2023 chaotic
+img_ext = 'h5'
+extra_name = 'data'
+zpad = 6
+images_subdir = True
+
+# top_dir = '/nas_data/Eiger2x/2023_Run1/20230405_Pollack'
+# sub_dirs = ['LP01/images', 'LP02/images', 'LP03/images', 'LP04/images']
+# output_dir = '/nas_data/Eiger2x/2023_Run1/20230405_Pollack/processing/composite_images/day1'
+
+# top_dir = '/nas_data/Eiger2x/2023_Run1/20230405_Pollack'
+# sub_dirs = ['LP07/images', 'LP08/images',]
+# output_dir = '/nas_data/Eiger2x/2023_Run1/20230405_Pollack/processing/composite_images/day2'
+
+# top_dir = '/nas_data/Eiger2x/2023_Run1/20230405_Pollack'
+# sub_dirs = ['LP11/images', 'LP12/images', 'LP13/images',]
+# output_dir = '/nas_data/Eiger2x/2023_Run1/20230405_Pollack/processing/composite_images/day3'
+
+# top_dir = '/nas_data/Eiger2x/2023_Run1/20230409_Gupta'
+# sub_dirs = ['KG03/images', 'KG04/images', 'KG05/images', 'KG06/images', 'KG07/images',
+#     'KG08/images', 'KG09/images', 'KG10/images', 'KG11/images', 'KG12/images',]
+# output_dir = '/nas_data/Eiger2x/2023_Run1/20230409_Gupta/processing/composite_images'
+
+# top_dir = '/nas_data/Eiger2x/2023_Run1/20230412_Ho'
+# sub_dirs = ['MH01/images', 'MH02/images', 'MH03/images', 'MH04/images', 'MH05/images', 
+#     'MH06/images',]
+# output_dir = '/nas_data/Eiger2x/2023_Run1/20230412_Ho/processing/composite_images/day1'
+
+# top_dir = '/nas_data/Eiger2x/2023_Run1/20230412_Ho'
+# sub_dirs = ['MH07/images', 'MH08/images', 'MH09/images', 'MH10/images', 'MH11/images',
+#     'MH12/images', 'MH13/images', 'MH14/images', 'MH15/images', 'MH16/images',
+#     'MH17/images', 'MH18/images',]
+# output_dir = '/nas_data/Eiger2x/2023_Run1/20230412_Ho/processing/composite_images/day2'
+
+top_dir = '/nas_data/Eiger2x/2023_Run1/20230415_Juarez'
+sub_dirs = ['OJ02/images', 'OJ03/images', 'OJ04/images', 'OJ05/images', 'OJ06/images',
+    'OJ07/images', 'OJ08/images', 'OJ09/images', 'OJ10/images',]
+output_dir = '/nas_data/Eiger2x/2023_Run1/20230415_Juarez/processing/composite_images'
+
+
+fdir = os.path.join(top_dir, sub_dirs[0])
+
+if images_subdir:
+    prefix = os.path.split(sub_dirs[0])[0]
+else:
+    prefix = sub_dirs[0]
+
+f_list = glob.glob(os.path.join(fdir, '{}_*_0001_{}*.{}'.format(prefix, extra_name, img_ext)))
+fnum_list = list(set([int(fname.split('_')[-1].rstrip('{}'.format(img_ext)).rstrip('.')) for fname in f_list]))
+fnum_list.sort()
+
+sample_image = fabio.open(f_list[0])
+img_list = [np.zeros_like(sample_image.data) for i in range(len(fnum_list))]
+
+for my_dir in sub_dirs:
+    print(my_dir)
+    for j, fnum in enumerate(fnum_list):
+        print(fnum)
+        if images_subdir:
+            prefix = os.path.split(my_dir)[0]
+        else:
+            prefix = my_dir
+        imgs = glob.glob(os.path.join(top_dir, my_dir, '{}_*{}_{:0{}d}.{}'.format(prefix, extra_name, fnum, zpad, img_ext)))
+        for img_name in imgs:
+            img = fabio.open(img_name)
+            img_list[j] = img_list[j] + img.data
+
+
+
+print('Saving composite images')
+
 
 if not os.path.exists(output_dir):
     os.makedirs(output_dir)
