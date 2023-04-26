@@ -16,21 +16,25 @@ def renum(source_dir, fprefix, frames, output_dir, dummy=False):
 
     print("Copying and renaming files with prefix {} from {} to {}".format(fprefix, source_dir, output_dir))
 
-    file_list = glob.glob(os.path.join(source_dir, '{}*'.format(fprefix)))
+    file_list = glob.glob(os.path.join(source_dir, '{}*data*'.format(fprefix)))
     file_list.sort(key=lambda x: int(x.split('_')[-1].split('.')[0]))
 
     for f in file_list:
         path, filename = os.path.split(f)
         fname, ext = os.path.splitext(filename)
 
-        base_file_name, old_frame_num = fname.split('_')
-        old_frame_num = int(old_frame_num) -1
+        temp_name = fname.split('_')
+        base_file_name = '_'.join(temp_name[:-2])
+        old_frame_num = int(temp_name[-1]) -1
+
+        # base_file_name, old_frame_num = fname.split('_')
+        # old_frame_num = int(old_frame_num) -1
 
         new_scan_num, new_frame_num = divmod(old_frame_num, frames)
         new_frame_num = new_frame_num + 1
         new_scan_num = new_scan_num + 1
 
-        new_file_name = '{}_{:04d}_{:04d}{}'.format(base_file_name, new_scan_num, new_frame_num, ext)
+        new_file_name = '{}_{:04d}_data_{:06d}{}'.format(base_file_name, new_scan_num, new_frame_num, ext)
 
         print("{} ===> {}".format(filename, new_file_name))
 
