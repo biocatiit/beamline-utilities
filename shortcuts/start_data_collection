@@ -1,20 +1,6 @@
 #!/bin/bash -i
 #
-if [ "x${MXDIR}" = x ]; then
-        MXDIR=/opt/mx
-fi
-
-source $MXDIR/bin/mxsetup.sh
-
-if [ "x${LD_LIBRARY_PATH}" = x ]; then
-        LD_LIBRARY_PATH="${MXDIR}/lib:${MXDIR}/lib/modules:${MXDIR}/lib/mp"
-else
-        LD_LIBRARY_PATH="${MXDIR}/lib:${MXDIR}/lib/modules:${MXDIR}/lib/mp:${LD_LIBRARY_PATH}"
-fi
-
-export LD_LIBRARY_PATH
-
-conda activate
-pushd $HOME/beamline-control-user/biocon
+conda activate mx_epics
+pushd /usr/local/beamline-control-user/biocon
 python biocon.py
 popd

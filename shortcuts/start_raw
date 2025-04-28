@@ -1,4 +1,5 @@
 #!/bin/bash -i
+conda activate raw
 pushd /usr/local/bioxtasraw/bioxtasraw
 python RAW.py
 popd

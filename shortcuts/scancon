@@ -1,4 +1,5 @@
 #!/bin/bash -i
+conda activate mx_epics
 pushd /usr/local/beamline-control-staff/catcon
 python scan.py
 popd
