@@ -615,7 +615,7 @@ def getNewFiles(target_dir, old_dir_list_dict, fprefix, extra_name, img_ext):
 #     ],
 # ]
 
-#April 2023
+# #April 2023
 # cfg_file = '/nas_data/Eiger2x/2023_Run1/20230408_Hopkins/20230408_laminar_SAXS.cfg'
 
 # # batch list should be a list of lists. Each entry should be as:
@@ -837,18 +837,36 @@ def getNewFiles(target_dir, old_dir_list_dict, fprefix, extra_name, img_ext):
 #     # ],
 # ]
 
-cfg_file = '/nas_data/Eiger2x/2023_Run1/20230405_Pollack/processing/masks/day1/LP_basic.cfg'
+#April 2023
+cfg_file = '/nas_data/Eiger2x/2023_Run1/20230409_Gupta/processing/masks/KG_basic.cfg'
 
 # batch list should be a list of lists. Each entry should be as:
 # [source_dir, fprefix, output_dir]
 # Note that if fprefix is None, all files in the directory will be processed
 
 batch_list = [
-    ['/nas_data/Eiger2x/2023_Run1/20230405_Pollack/LP01/images',
-    'LP01',
-    '/nas_data/SAXS/2023_Run1/20230405_Pollack/LP01/profiles'
+    # ['/nas_data/Eiger2x/2023_Run1/20230409_Gupta/KG01/images',
+    # 'KG01',
+    # '/nas_data/SAXS/2023_Run1/20230409_Gupta/KG01/profiles'
+    # ],
+    ['/nas_data/Eiger2x/2023_Run1/20230409_Gupta/KG02/images',
+    'KG02',
+    '/nas_data/SAXS/2023_Run1/20230409_Gupta/KG02/profiles'
     ],
-    ]
+]
+
+# cfg_file = '/nas_data/Eiger2x/2023_Run1/20230405_Pollack/processing/masks/day1/LP_basic.cfg'
+
+# # batch list should be a list of lists. Each entry should be as:
+# # [source_dir, fprefix, output_dir]
+# # Note that if fprefix is None, all files in the directory will be processed
+
+# batch_list = [
+#     ['/nas_data/Eiger2x/2023_Run1/20230405_Pollack/LP01/images',
+#     'LP01',
+#     '/nas_data/SAXS/2023_Run1/20230405_Pollack/LP01/profiles'
+#     ],
+#     ]
 
 # ai, mask, q_range, maxlen, normlist, do_normalization, raw_settings, calibrate_dict, fliplr, flipud = saxs_raver.init_integration(cfg_file)
 
