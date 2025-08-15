@@ -1,0 +1,5 @@
+#!/bin/bash -i
+#
+pushd /usr/local/ImageJ
+java -jar ij.jar
+popd
