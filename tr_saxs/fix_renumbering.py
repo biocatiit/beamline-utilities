@@ -4,7 +4,7 @@ import shutil
 
 def renum_scan_files(data_dir, fprefix, num_frames, total_runs, det_type, dummy=False):
 
-    for run in range(1, total_runs+1):
+    for current_run in range(1, total_runs+1):
         f_start = (int(current_run) - 1)*num_frames + 1
 
         if det_type == 'eiger':
