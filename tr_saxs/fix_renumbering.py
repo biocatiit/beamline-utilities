@@ -2,7 +2,7 @@ import os
 import glob
 import shutil
 
-def renum_scan_files(data_dir, fprefix, num_frames, total_runs, det_type):
+def renum_scan_files(data_dir, fprefix, num_frames, total_runs, det_type, dummy=False):
 
     for run in range(1, total_runs+1):
         f_start = (int(current_run) - 1)*num_frames + 1
@@ -26,7 +26,8 @@ def renum_scan_files(data_dir, fprefix, num_frames, total_runs, det_type):
 
             if os.path.exists(full_path):
                 print('Moving %s to %s', full_path, full_new)
-                shutil.move(full_path, full_new)
+                if not dummy:
+                    shutil.move(full_path, full_new)
 
 
 if __name__ == '__main__':
@@ -36,4 +37,4 @@ if __name__ == '__main__':
     total_runs = 160
     det_type = 'pilatus'
 
-    renum_scan_files(data_dir, fprefix, num_frames, total_runs, det_type)
+    renum_scan_files(data_dir, fprefix, num_frames, total_runs, det_type, dummy=True)
