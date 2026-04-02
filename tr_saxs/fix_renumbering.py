@@ -5,7 +5,6 @@ import shutil
 def renum_scan_files(data_dir, fprefix, num_frames, total_runs, det_type, dummy=False):
 
     for current_run in range(1, total_runs+1):
-        print(current_run)
         f_start = (int(current_run) - 1)*num_frames + 1
 
         if det_type == 'eiger':
@@ -13,7 +12,6 @@ def renum_scan_files(data_dir, fprefix, num_frames, total_runs, det_type, dummy=
         elif det_type == 'pilatus':
             f_list = ['{}_{:06d}.tif'.format(fprefix, f_start+i) for i in range(num_frames)]
 
-        print(f_list)
         timeout = False
 
         for i, f in enumerate(f_list):
@@ -26,6 +24,7 @@ def renum_scan_files(data_dir, fprefix, num_frames, total_runs, det_type, dummy=
 
             full_new = os.path.join(data_dir, new_name)
 
+            print(full_path)
             print(full_new)
             if os.path.exists(full_path):
                 print('Moving %s to %s', full_path, full_new)
