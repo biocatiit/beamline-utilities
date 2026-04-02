@@ -24,10 +24,8 @@ def renum_scan_files(data_dir, fprefix, num_frames, total_runs, det_type, dummy=
 
             full_new = os.path.join(data_dir, new_name)
 
-            print(full_path)
-            print(full_new)
             if os.path.exists(full_path):
-                print('Moving %s to %s', full_path, full_new)
+                print('Moving {} to {}'.format(full_path, full_new))
                 if not dummy:
                     shutil.move(full_path, full_new)
 
