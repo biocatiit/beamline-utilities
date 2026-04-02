@@ -5,6 +5,7 @@ import shutil
 def renum_scan_files(data_dir, fprefix, num_frames, total_runs, det_type, dummy=False):
 
     for current_run in range(1, total_runs+1):
+        print(current_run)
         f_start = (int(current_run) - 1)*num_frames + 1
 
         if det_type == 'eiger':
@@ -38,5 +39,7 @@ if __name__ == '__main__':
     num_frames = 240
     total_runs = 160
     det_type = 'pilatus'
+
+    print('here')
 
     renum_scan_files(data_dir, fprefix, num_frames, total_runs, det_type, dummy=True)
