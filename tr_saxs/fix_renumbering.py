@@ -31,12 +31,10 @@ def renum_scan_files(data_dir, fprefix, num_frames, total_runs, det_type, dummy=
 
 
 if __name__ == '__main__':
-    data_dir = '/nas_data/Pilatus1M/2026_1M/2026_Run1/2026_04_01_Grubic/TG01'
-    fprefix = 'TG01_001'
-    num_frames = 240
-    total_runs = 160
+    data_dir = '/nas_data/Pilatus1M/2026_1M/2026_Run1/2026_04_01_Grubic/TG05'
+    fprefix = 'TG05B_002'
+    num_frames = 295
+    total_runs = 40
     det_type = 'pilatus'
 
-    print('here')
-
-    renum_scan_files(data_dir, fprefix, num_frames, total_runs, det_type, dummy=True)
+    renum_scan_files(data_dir, fprefix, num_frames, total_runs, det_type, dummy=False)
